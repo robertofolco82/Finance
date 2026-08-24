@@ -1,0 +1,272 @@
+[
+  {
+    "isin": "US20451W1018",
+    "data": "2026-08-22",
+    "chiusura": 13.53,
+    "chiusura_precedente": null,
+    "valuta": "USD",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "US8740391003",
+    "data": "2026-08-22",
+    "chiusura": 418.65,
+    "chiusura_precedente": null,
+    "valuta": "USD",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "NL0010273215",
+    "data": "2026-08-22",
+    "chiusura": 1505.6,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "IE00BFMXXD54",
+    "data": "2026-08-22",
+    "chiusura": 127.16,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "IE00B3XXRP09",
+    "data": "2026-08-22",
+    "chiusura": 124.8,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "IE00BLDGHT92",
+    "data": "2026-08-22",
+    "chiusura": 161.84,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "DE000VY3NBZ6",
+    "data": "2026-08-22",
+    "chiusura": 3.19,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "NLBNPIT3MRU4",
+    "data": "2026-08-22",
+    "chiusura": 5.16,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "NLBNPIT37C90",
+    "data": "2026-08-22",
+    "chiusura": 8.89,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "NLBNPIT3MA79",
+    "data": "2026-08-22",
+    "chiusura": 62,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "XS3388190996",
+    "data": "2026-08-22",
+    "chiusura": 0.9902,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "CH1358858129",
+    "data": "2026-08-22",
+    "chiusura": 1003.79,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "CH1336232371",
+    "data": "2026-08-22",
+    "chiusura": 998.47,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "IT0006775073",
+    "data": "2026-08-22",
+    "chiusura": 1012.5,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "DE000UR0A4S0",
+    "data": "2026-08-22",
+    "chiusura": 100.2,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "IE00B579F325",
+    "data": "2026-08-22",
+    "chiusura": 379.4,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "LU0290358497",
+    "data": "2026-08-22",
+    "chiusura": 149.9881,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "IE00B3VWN179",
+    "data": "2026-08-22",
+    "chiusura": 108.06,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "LU1287023185",
+    "data": "2026-08-22",
+    "chiusura": 167.71,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "IE000UWJUW87",
+    "data": "2026-08-22",
+    "chiusura": 9.15,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "IT0005436693",
+    "data": "2026-08-22",
+    "chiusura": 87.36,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "BE0000351602",
+    "data": "2026-08-22",
+    "chiusura": 96.86,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "AT0000A2VB47",
+    "data": "2026-08-22",
+    "chiusura": 94.03,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "EU000A283859",
+    "data": "2026-08-22",
+    "chiusura": 88.53,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "DE0001102523",
+    "data": "2026-08-22",
+    "chiusura": 96.76,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "FR0014007L00",
+    "data": "2026-08-22",
+    "chiusura": 81.9,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "XS1503043694",
+    "data": "2026-08-22",
+    "chiusura": 92.22,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "XS2388495942",
+    "data": "2026-08-22",
+    "chiusura": 99.45,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "EURUSD",
+    "data": "2026-08-22",
+    "chiusura": 1.1682,
+    "chiusura_precedente": null,
+    "valuta": "RATE",
+    "fonte": "export broker 22/08/2026",
+    "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "EURUSD",
+    "data": "2026-08-24",
+    "chiusura": 1.1682,
+    "chiusura_precedente": null,
+    "valuta": "RATE",
+    "fonte": "web search",
+    "raccolto_il": "2026-08-24T09:20:45.304Z"
+  }
+]

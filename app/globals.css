@@ -1,0 +1,68 @@
+:root {
+  --bg: #f5f6f9;
+  --surf: #ffffff;
+  --surf2: #f0f2f6;
+  --ink: #0b0f17;
+  --mut: #69738a;
+  --faint: #98a1b3;
+  --line: #e4e8ef;
+  --pos: #00a06b;
+  --posBg: #e4f6ef;
+  --neg: #e0393e;
+  --negBg: #fdebeb;
+  --acc: #2f4bff;
+  --accBg: #edf0ff;
+  --warn: #b37400;
+  --warnBg: #fff6e3;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-manrope), -apple-system, system-ui, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+@keyframes gira {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}
