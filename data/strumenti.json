@@ -11,8 +11,8 @@
     "sottostante": "Compass Pathways (CMPS)",
     "sottostante_verificato": true,
     "analizzabile": true,
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "CMPS"
+    "fonte_prezzo": "stockanalysis",
+    "percorso_stockanalysis": "stocks/cmps"
   },
   {
     "isin": "US8740391003",
@@ -26,8 +26,8 @@
     "sottostante": "TSMC (TSM)",
     "sottostante_verificato": true,
     "analizzabile": true,
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "TSM"
+    "fonte_prezzo": "stockanalysis",
+    "percorso_stockanalysis": "stocks/tsm"
   },
   {
     "isin": "NL0010273215",
@@ -41,8 +41,8 @@
     "sottostante": "ASML (ASML)",
     "sottostante_verificato": true,
     "analizzabile": true,
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "ASML.AS"
+    "fonte_prezzo": "stockanalysis",
+    "percorso_stockanalysis": "quote/ams/ASML"
   },
   {
     "isin": "IE00BFMXXD54",
@@ -58,8 +58,8 @@
     "analizzabile": false,
     "motivo_na": "ETF che replica un indice: nessun rating analisti su un paniere.",
     "nota": "Insieme a IE00B3XXRP09 (VUSA, accumulo+distribuzione) replica lo stesso S&P 500: circa 66.900 €, il 10,6% del portafoglio. In allocazione va letto come un'unica esposizione.",
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "VUAA.MI"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "etf"
   },
   {
     "isin": "IE00B3XXRP09",
@@ -75,8 +75,8 @@
     "analizzabile": false,
     "motivo_na": "ETF che replica un indice: nessun rating analisti su un paniere.",
     "nota": "Insieme a IE00BFMXXD54 (VUAA, accumulo) replica lo stesso S&P 500: circa 66.900 €, il 10,6% del portafoglio. In allocazione va letto come un'unica esposizione.",
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "VUSA.MI"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "etf"
   },
   {
     "isin": "IE00BLDGHT92",
@@ -91,8 +91,8 @@
     "sottostante_verificato": true,
     "analizzabile": false,
     "motivo_na": "Strategia su paniere (put write su indice): nessun rating analisti applicabile.",
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "UIQ4.DE"
+    "fonte_prezzo": "stockanalysis",
+    "percorso_stockanalysis": "quote/etr/UIQ4"
   },
   {
     "isin": "DE000VY3NBZ6",
@@ -265,8 +265,8 @@
     "sottostante_verificato": true,
     "analizzabile": false,
     "motivo_na": "Materia prima: nessun analista copre un lingotto.",
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "SGLD.MI"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "etc-etn"
   },
   {
     "isin": "LU0290358497",
@@ -281,8 +281,8 @@
     "sottostante_verificato": true,
     "analizzabile": false,
     "motivo_na": "Monetario: rende il tasso overnight, non ha utili né rating.",
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "XEON.MI"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "etf"
   },
   {
     "isin": "IE00B3VWN179",
@@ -297,8 +297,8 @@
     "sottostante_verificato": true,
     "analizzabile": false,
     "motivo_na": "Paniere obbligazionario: si valuta su YTM e duration, non su rating analisti.",
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "CSBGU3.MI"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "etf"
   },
   {
     "isin": "LU1287023185",
@@ -313,8 +313,8 @@
     "sottostante_verificato": true,
     "analizzabile": false,
     "motivo_na": "Paniere obbligazionario: si valuta su YTM e duration, non su rating analisti.",
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "EM710.MI"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "etf"
   },
   {
     "isin": "IE000UWJUW87",
@@ -329,8 +329,8 @@
     "sottostante_verificato": true,
     "analizzabile": false,
     "motivo_na": "Cat bond: il driver è la sinistrosità assicurativa, non gli utili.",
-    "fonte_prezzo": "yahoo",
-    "simbolo_yahoo": "CATB.MI"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "etf"
   },
   {
     "isin": "IT0005436693",

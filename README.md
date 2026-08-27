@@ -12,7 +12,7 @@ Tu premi "Aggiorna prezzi"  (nessun automatismo: parte solo su tua richiesta)
         │
         ▼
 il browser chiama /api/refresh/lotto una volta per lotto, in parallelo
-        │            └─► fonti gratuite: Yahoo Finance + Borsa Italiana + BCE
+        │            └─► fonti gratuite: Borsa Italiana + stockanalysis.com + BCE
         ▼
 /api/refresh/salva  ──►  quarantena al 60%, poi scrive
         ▼
@@ -24,20 +24,25 @@ Next.js API routes  ──►  frontend React (nessuna chiave lato client)
 
 Decisioni chiave (motivate in `SPEC.md` §2, §6, §13):
 
-- **Costo zero.** Nessun servizio a pagamento: prezzi da Yahoo Finance e Borsa
-  Italiana, cambio dalla BCE, consenso analisti da stockanalysis.com. Non serve
+- **Costo zero.** Nessun servizio a pagamento: prezzi da Borsa Italiana e
+  stockanalysis.com, cambio dalla BCE, consenso analisti da stockanalysis.com. Non serve
   nessuna chiave API se non il token GitHub per lo store dati.
 - **Vercel** invece di verificare cosa supporta l'hosting personale: gratuito, deploy
   diretto da questo repo, funzioni serverless per l'API.
+- **Niente Yahoo Finance.** Funziona da un browser ma risponde 429 alle chiamate
+  dai server Vercel, che escono da indirizzi di datacenter: verificato in
+  produzione, tutti gli 11 titoli che passavano da lì fallivano. Sostituito con
+  Borsa Italiana (che da Vercel funziona) e stockanalysis.com.
 - **Fonti dirette, non ricerca via LLM.** La ricerca web impiegava oltre 35 secondi
   per 5 titoli e costava a ogni giro; le fonti dirette rispondono in frazioni di
   secondo, gratis, e non possono "leggere male" un numero — l'errore da 24× che aveva
-  falsato il prototipo nasceva proprio lì. Copertura verificata sui 28 ISIN reali: **Yahoo Finance 11** (azioni ed ETF, con chiusura precedente), **Borsa
-  Italiana 12** (titoli di Stato su MOT, certificati su SeDeX), **BCE** per il cambio
-  EUR/USD. I **5 rimanenti** — i 4 strutturati EuroTLX e l'ETP SK Hynix — non sono
-  quotati da nessuna fonte gratuita e hanno un campo di inserimento manuale nella
-  scheda (§6.3). Resta la quarantena obbligatoria sopra il 60% di scostamento
-  dall'ultimo prezzo *scaricato*, applicata anche ai prezzi inseriti a mano.
+  falsato il prototipo nasceva proprio lì. Copertura verificata sui 28 ISIN reali: **Borsa Italiana 19** (titoli di Stato su MOT, certificati SeDeX, ETF
+  ed ETC su ETFplus), **stockanalysis.com 4** (azioni estere e l'ETF quotato solo
+  su XETRA), **BCE** per il cambio EUR/USD. I **5 rimanenti** — i 4 strutturati
+  EuroTLX e l'ETP SK Hynix — non sono quotati da nessuna fonte gratuita e hanno un
+  campo di inserimento manuale nella scheda (§6.3). Resta la quarantena
+  obbligatoria sopra il 60% di scostamento dall'ultimo prezzo *scaricato*,
+  applicata anche ai prezzi inseriti a mano.
 - **Nessun automatismo.** Ogni aggiornamento parte da un tuo clic. Non c'è cron: se in
   futuro ne volessi uno, va aggiunto a `vercel.json` con un endpoint che orchestri i
   lotti (il limite di 60s vale anche lì, dove non c'è un browser a spezzarli).
@@ -67,15 +72,14 @@ Serve **solo** l'accesso allo store dati. Nessuna chiave a pagamento.
 ```bash
 npm install
 npm run dev     # in locale lo store usa direttamente data/*.json
-npm test        # 24 test su calcoli, parser xls, consenso, timeout
+npm test        # 36 test su calcoli, parser xls, consenso, timeout
 npm run build   # stesso comando che gira su Vercel
 ```
 
 Gli script in `scripts/` riverificano la copertura delle fonti sui 28 ISIN reali:
 
 ```bash
-node scripts/verifica-yahoo.mjs           # azioni ed ETF
-node scripts/verifica-borsaitaliana.mjs   # titoli di Stato e certificati
+node scripts/verifica-fonti.mjs           # prezzi: dice quale fonte si è rotta
 node scripts/verifica-stockanalysis.mjs   # consenso analisti
 ```
 
@@ -105,23 +109,23 @@ node scripts/verifica-stockanalysis.mjs   # consenso analisti
   è un'unica richiesta lunga: il browser chiama `/api/refresh/lotto` una volta per
   lotto, in parallelo e con progresso visibile, poi `/api/refresh/salva` una volta
   sola. Con le fonti gratuite un giro completo sui 28 titoli si chiude in circa 5
-  secondi. **"Aggiorna rating"** resta invece una richiesta unica e sequenziale che
-  usa l'LLM, e può superare il limite: se lì vedi un errore non-JSON (è la pagina
-  d'errore di Vercel, non una risposta dell'app), usa `POST /api/rating/:isin` titolo
-  per titolo o passa al piano Pro.
+  secondi. **"Aggiorna rating"** interroga in sequenza gli 8 titoli analizzabili e si
+  chiude ampiamente entro il limite.
 - **ETP SK Hynix (XS3388190996) a −90%** resta in portafoglio di default (§13,
   decisione non ancora presa nella spec). Rimuoverlo dai calcoli in versioni future
   volesse dire eliminare le sue righe da `strumenti.json`/`movimenti.json`.
 - **Storico rating vuoto all'avvio.** Non è acquistabile a posteriori (dato
   licenziato FactSet/LSEG/Visible Alpha, §3.2): si popola da oggi in avanti, una
   rilevazione alla volta, premendo "Aggiorna rating".
-- **Fonti prezzi non ufficiali.** Yahoo Finance non è un servizio con contratto e
-  Borsa Italiana viene letta dalle pagine pubbliche: se cambiano struttura, quei
-  prezzi smettono di arrivare. Non è un rischio silenzioso — i titoli non aggiornati
-  vengono elencati con il motivo, e restano l'inserimento manuale e la quarantena a
-  impedire che un valore sbagliato entri nei totali. La mappatura simbolo/percorso
-  sta in `data/strumenti.json` (`simbolo_yahoo`, `percorso_borsait`) ed è verificabile
-  con gli script in `scripts/` (`node scripts/verifica-yahoo.mjs`).
+- **Fonti prezzi non ufficiali.** Borsa Italiana e stockanalysis.com vengono lette
+  dalle pagine pubbliche: se cambiano struttura, quei prezzi smettono di arrivare.
+  Non è un rischio silenzioso — i titoli non aggiornati vengono elencati con il
+  motivo, e restano l'inserimento manuale e la quarantena a impedire che un valore
+  sbagliato entri nei totali. In più, i prezzi da stockanalysis.com sono verificati
+  contro il range di giornata della stessa pagina: un'estrazione presa dal punto
+  sbagliato viene scartata invece che applicata. La mappatura sta in
+  `data/strumenti.json` (`percorso_borsait`, `percorso_stockanalysis`) e
+  `node scripts/verifica-fonti.mjs` dice in un colpo solo quale fonte si è rotta.
 - **`npm audit` segnala alcune vulnerabilità** in dipendenze transitive: `postcss`/
   `sharp` (interne a Next.js 15, corrette solo in Next 16 — non riguardano
   funzionalità usate qui, niente `next/image` né CSS da input utente) e `uuid` (via
@@ -157,7 +161,7 @@ lib/
   portafoglio.ts          vista derivata (posizioni + P&L + attribuzione)
   anthropic.ts            client Claude con retry/backoff (§11)
   fetch-prezzi.ts         fetcher prezzi + quarantena + snapshot
-  prezzi-fonti.ts         Yahoo / Borsa Italiana / BCE — le fonti dei prezzi
+  prezzi-fonti.ts         Borsa Italiana / stockanalysis / BCE — lib/prezzi-fonti.test.ts
   consenso.ts             consenso analisti da stockanalysis.com — lib/consenso.test.ts
   fondamentali.ts         orchestrazione rating + storico rilevazioni
   xls.ts, importa-portafoglio.ts lettura xls + riallineamento movimenti — lib/xls.test.ts

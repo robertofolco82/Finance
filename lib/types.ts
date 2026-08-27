@@ -34,11 +34,11 @@ export interface Strumento {
   nota?: string;
   fonte_scheda?: string;
   /** Da dove si preleva il prezzo — vedi lib/prezzi-fonti.ts. */
-  fonte_prezzo?: "yahoo" | "borsaitaliana" | "manuale";
-  /** Simbolo Yahoo con suffisso di borsa (es. "ASML.AS"), se fonte_prezzo = yahoo. */
-  simbolo_yahoo?: string;
+  fonte_prezzo?: "borsaitaliana" | "stockanalysis" | "manuale";
   /** Percorso della scheda Borsa Italiana, se fonte_prezzo = borsaitaliana. */
   percorso_borsait?: string;
+  /** Percorso della scheda stockanalysis.com, se fonte_prezzo = stockanalysis. */
+  percorso_stockanalysis?: string;
 }
 
 export interface Movimento {
