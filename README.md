@@ -102,14 +102,19 @@ npm run build   # build di produzione, stesso comando che gira su Vercel
   `strumenti.json` prima (servono mercato/tipo/macro/sottostante, che l'xls non
   contiene). Le posizioni presenti in portafoglio ma assenti dal file vengono
   segnalate, non vendute in automatico.
-- **Piano Vercel Hobby: funzioni limitate a 60s.** "Aggiorna prezzi" lancia i 7
-  lotti in parallelo (non più in sequenza) per restarci sotto anche con la
-  ricerca web reale, che richiede diversi secondi a lotto. "Aggiorna rating" su
-  tutti i titoli analizzabili resta invece sequenziale (con attese di cortesia
-  fra una chiamata e l'altra) e può superare il limite se i titoli analizzabili
-  sono molti — se vedi un errore non-JSON lì (la funzione terminata a metà da
-  Vercel, non un errore applicativo), o passi al piano Pro (300s) o lanci
-  `POST /api/rating/:isin` titolo per titolo.
+- **Piano Vercel Hobby: funzioni limitate a 60s.** Il limite vale per *ogni singola
+  richiesta HTTP*, non per l'operazione nel suo insieme. "Aggiorna prezzi" perciò
+  non è più un'unica richiesta lunga: il browser chiama `/api/refresh/lotto` una
+  volta per lotto (una richiesta = una chiamata a Claude, sempre breve), in
+  parallelo e con progresso visibile, poi `/api/refresh/salva` una volta sola per
+  quarantena e scritture. Così il limite non è più raggiungibile per costruzione,
+  qualunque sia il numero di titoli. "Aggiorna rating" su tutti i titoli
+  analizzabili resta invece una richiesta unica e sequenziale, e può superare il
+  limite: se lì vedi un errore non-JSON (è la pagina d'errore di Vercel, non una
+  risposta dell'app), lancia `POST /api/rating/:isin` titolo per titolo o passa al
+  piano Pro. Lo scheduler notturno usa ancora `/api/refresh` in un colpo solo,
+  perché lì non c'è un browser a orchestrare: se dovesse eccedere, va spezzato
+  allo stesso modo.
 - **ETP SK Hynix (XS3388190996) a −90%** resta in portafoglio di default (§13,
   decisione non ancora presa nella spec). Rimuoverlo dai calcoli in versioni future
   volesse dire eliminare le sue righe da `strumenti.json`/`movimenti.json`.

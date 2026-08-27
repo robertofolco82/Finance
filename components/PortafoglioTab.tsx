@@ -40,16 +40,59 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
   }));
   const aggiornati = vista.righe.filter((r) => r.prezzo != null).length;
 
+  /**
+   * Orchestra il refresh dal browser: un lotto per richiesta HTTP, in parallelo,
+   * poi un unico salvataggio. Il browser non ha il limite di durata che hanno le
+   * funzioni Vercel, quindi nessuna singola richiesta può più essere troncata a
+   * metà (che è ciò che produceva la pagina d'errore non-JSON).
+   */
   async function aggiornaPrezzi() {
     setBusy("prezzi");
     setErrore(null);
     try {
-      const res = await fetch("/api/refresh", { method: "POST" });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.errore || "aggiornamento prezzi non riuscito.");
+      const resConteggio = await fetch("/api/refresh/lotto");
+      const conteggio = await resConteggio.json();
+      if (!resConteggio.ok) throw new Error(conteggio.errore || "non riesco a preparare l'aggiornamento.");
+      const totale: number = conteggio.totaleLotti;
+
+      let completati = 0;
+      setProg(`0/${totale}`);
+      const esiti = await Promise.all(
+        Array.from({ length: totale }, async (_, indice) => {
+          try {
+            const res = await fetch("/api/refresh/lotto", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ indice }),
+            });
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.errore || `lotto ${indice + 1} non riuscito`);
+            return d as { raccolti: unknown[]; falliti: string[]; errore?: string };
+          } catch (e) {
+            return { raccolti: [], falliti: [], errore: (e as Error).message };
+          } finally {
+            completati++;
+            setProg(`${completati}/${totale}`);
+          }
+        })
+      );
+
+      const raccolti = esiti.flatMap((e) => e.raccolti);
+      const falliti = esiti.flatMap((e) => e.falliti);
+      const dettaglioErrore = esiti.find((e) => e.errore)?.errore;
+
+      setProg("salvo…");
+      const resSalva = await fetch("/api/refresh/salva", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ raccolti, falliti, dettaglioErrore }),
+      });
+      const d = await resSalva.json();
+      if (!resSalva.ok) throw new Error(d.errore || "salvataggio non riuscito.");
+
       if (d.falliti?.length) {
         const causa = d.dettaglioErrore ? ` Causa: ${d.dettaglioErrore}` : "";
-        setErrore(`${d.falliti.length} titoli non aggiornati.${causa} (${d.falliti.join(", ")})`);
+        setErrore(`${d.aggiornati} prezzi aggiornati, ${d.falliti.length} non trovati.${causa} (${d.falliti.join(", ")})`);
       }
       await ricarica();
     } catch (e) {

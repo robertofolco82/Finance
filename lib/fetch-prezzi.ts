@@ -51,11 +51,23 @@ interface PrezzoTrovato {
   data?: string;
 }
 
+/** Prezzo grezzo appena raccolto: non ancora validato né scritto nello store. */
+export interface PrezzoRaccolto {
+  isin: string;
+  prezzo: number;
+  chiusura_precedente: number | null;
+  fonte: string;
+}
+
 interface RisultatoLotto {
-  nuoviPrezzi: PrezzoRecord[];
-  nuoviSospetti: PrezzoSospetto[];
+  raccolti: PrezzoRaccolto[];
   falliti: string[];
   errore?: string;
+}
+
+export interface RisultatoLottoApi extends RisultatoLotto {
+  indice: number;
+  totaleLotti: number;
 }
 
 async function recuperaCambio(modello: string): Promise<number | null> {
@@ -72,14 +84,8 @@ async function recuperaCambio(modello: string): Promise<number | null> {
   }
 }
 
-async function elaboraLotto(
-  lotto: Strumento[],
-  modello: string,
-  oggi: string,
-  prezziStorico: PrezzoRecord[]
-): Promise<RisultatoLotto> {
-  const nuoviPrezzi: PrezzoRecord[] = [];
-  const nuoviSospetti: PrezzoSospetto[] = [];
+/** Solo rete: una chiamata a Claude per il lotto, nessuna lettura/scrittura dello store. */
+async function elaboraLotto(lotto: Strumento[], modello: string): Promise<RisultatoLotto> {
   try {
     const testo = await chiedi(
       `Per ciascuno di questi strumenti cerca la quotazione più recente E la chiusura della seduta precedente.\n` +
@@ -91,94 +97,108 @@ async function elaboraLotto(
       { maxTokens: 1800, effort: "low", model: modello }
     );
     const d = estraiJSON<{ prezzi: PrezzoTrovato[] }>(testo);
+    const raccolti: PrezzoRaccolto[] = [];
     for (const q of d.prezzi || []) {
       if (q.prezzo == null) continue;
-      const strumento = lotto.find((s) => s.isin === q.isin);
-      if (!strumento) continue;
-      const ultimo = ultimoPrezzo(prezziStorico, q.isin);
-      const riferimento = ultimo?.chiusura;
-      const variazione = riferimento ? ((q.prezzo - riferimento) / riferimento) * 100 : 0;
-      const fonte = `${q.fonte || ""} ${q.data || ""}`.trim();
-      if (riferimento != null && Math.abs(variazione / 100) > SOGLIA_QUARANTENA) {
-        nuoviSospetti.push({
-          isin: q.isin,
-          nome: strumento.nome,
-          vecchio: riferimento,
-          nuovo: q.prezzo,
-          variazione,
-          chiusura_precedente: q.chiusura_precedente ?? null,
-          fonte,
-          valuta: strumento.valuta,
-        });
-      } else {
-        nuoviPrezzi.push({
-          isin: q.isin,
-          data: oggi,
-          chiusura: q.prezzo,
-          chiusura_precedente: q.chiusura_precedente ?? ultimo?.chiusura_precedente ?? null,
-          valuta: strumento.valuta,
-          fonte,
-          raccolto_il: new Date().toISOString(),
-        });
-      }
+      if (!lotto.some((s) => s.isin === q.isin)) continue;
+      raccolti.push({
+        isin: q.isin,
+        prezzo: q.prezzo,
+        chiusura_precedente: q.chiusura_precedente ?? null,
+        fonte: `${q.fonte || ""} ${q.data || ""}`.trim(),
+      });
     }
-    return { nuoviPrezzi, nuoviSospetti, falliti: [] };
+    const trovati = new Set(raccolti.map((r) => r.isin));
+    return { raccolti, falliti: lotto.filter((s) => !trovati.has(s.isin)).map((s) => s.isin) };
   } catch (e) {
-    return { nuoviPrezzi: [], nuoviSospetti: [], falliti: lotto.map((s) => s.isin), errore: e instanceof Error ? e.message : String(e) };
+    return { raccolti: [], falliti: lotto.map((s) => s.isin), errore: e instanceof Error ? e.message : String(e) };
   }
 }
 
-export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
+function dividiInLotti(strumenti: Strumento[]): Strumento[][] {
+  const lotti: Strumento[][] = [];
+  for (let i = 0; i < strumenti.length; i += LOTTO) lotti.push(strumenti.slice(i, i + LOTTO));
+  return lotti;
+}
+
+/**
+ * Raccoglie i prezzi di UN lotto. È il mattone usato dal browser: una richiesta
+ * HTTP = una chiamata a Claude, quindi nessun rischio di superare il limite di
+ * durata delle funzioni Vercel, per quanti titoli ci siano in portafoglio.
+ */
+export async function recuperaLotto(indice: number): Promise<RisultatoLottoApi> {
+  const strumenti = await readData("strumenti");
+  const lotti = dividiInLotti(strumenti);
+  const lotto = lotti[indice];
+  if (!lotto) throw new Error(`lotto ${indice} inesistente (ce ne sono ${lotti.length}).`);
+  const modello = await modelloCorrente();
+  const esito = await conTimeout(elaboraLotto(lotto, modello), TIMEOUT_LOTTO_MS, {
+    raccolti: [],
+    falliti: lotto.map((s) => s.isin),
+    errore: `nessuna risposta entro ${TIMEOUT_LOTTO_MS / 1000}s`,
+  });
+  return { ...esito, indice, totaleLotti: lotti.length };
+}
+
+export async function contaLotti(): Promise<number> {
+  return dividiInLotti(await readData("strumenti")).length;
+}
+
+/**
+ * Applica quarantena (§5.7) e scrive: prezzi, sospetti, snapshot. Separato dalla
+ * raccolta perché è la sola parte che tocca lo store — così il browser può
+ * raccogliere in parallelo e salvare una volta sola alla fine.
+ */
+export async function salvaRaccolti(
+  raccolti: PrezzoRaccolto[],
+  falliti: string[] = [],
+  primoErrore?: string
+): Promise<RisultatoRefresh> {
   const strumenti = await readData("strumenti");
   const prezziStorico = await readData("prezzi");
   const modello = await modelloCorrente();
   const oggi = new Date().toISOString().slice(0, 10);
 
-  const lotti: Strumento[][] = [];
-  for (let i = 0; i < strumenti.length; i += LOTTO) lotti.push(strumenti.slice(i, i + LOTTO));
-
-  // Tutte le chiamate insieme, non una dopo l'altra: con la ricerca web reale ogni
-  // lotto richiede diversi secondi, e in sequenza 7 lotti superano facilmente il
-  // limite di 60s delle funzioni Vercel. In parallelo il tempo totale è quello del
-  // lotto più lento — per questo ogni lotto ha anche un timeout proprio: se anche
-  // uno solo si incaglia (retry ripetuti, ricerche lente), non deve poter trascinare
-  // giù l'intera risposta.
-  const [cambioTrovato, risultatiLotti] = await Promise.all([
-    conTimeout(recuperaCambio(modello), TIMEOUT_CAMBIO_MS, null),
-    Promise.all(
-      lotti.map((lotto) =>
-        conTimeout(elaboraLotto(lotto, modello, oggi, prezziStorico), TIMEOUT_LOTTO_MS, {
-          nuoviPrezzi: [],
-          nuoviSospetti: [],
-          falliti: lotto.map((s) => s.isin),
-          errore: `nessuna risposta entro ${TIMEOUT_LOTTO_MS / 1000}s`,
-        })
-      )
-    ),
-  ]);
-
-  let cambio = cambioEurUsdCorrente(prezziStorico);
-  const cambioAggiornato = cambioTrovato != null;
-  if (cambioAggiornato) cambio = cambioTrovato;
-
   const nuoviPrezzi: PrezzoRecord[] = [];
   const nuoviSospetti: PrezzoSospetto[] = [];
-  const falliti: string[] = [];
-  let primoErrore: string | null = null;
-  for (const r of risultatiLotti) {
-    nuoviPrezzi.push(...r.nuoviPrezzi);
-    nuoviSospetti.push(...r.nuoviSospetti);
-    falliti.push(...r.falliti);
-    if (r.errore && !primoErrore) primoErrore = r.errore;
+  for (const r of raccolti) {
+    const strumento = strumenti.find((s) => s.isin === r.isin);
+    if (!strumento) continue;
+    const ultimo = ultimoPrezzo(prezziStorico, r.isin);
+    const riferimento = ultimo?.chiusura;
+    const variazione = riferimento ? ((r.prezzo - riferimento) / riferimento) * 100 : 0;
+    if (riferimento != null && Math.abs(variazione / 100) > SOGLIA_QUARANTENA) {
+      nuoviSospetti.push({
+        isin: r.isin,
+        nome: strumento.nome,
+        vecchio: riferimento,
+        nuovo: r.prezzo,
+        variazione,
+        chiusura_precedente: r.chiusura_precedente,
+        fonte: r.fonte,
+        valuta: strumento.valuta,
+      });
+    } else {
+      nuoviPrezzi.push({
+        isin: r.isin,
+        data: oggi,
+        chiusura: r.prezzo,
+        chiusura_precedente: r.chiusura_precedente ?? ultimo?.chiusura_precedente ?? null,
+        valuta: strumento.valuta,
+        fonte: r.fonte,
+        raccolto_il: new Date().toISOString(),
+      });
+    }
   }
 
   const aggiornatiReali = nuoviPrezzi.length;
-
-  // Il tasso di cambio si registra solo se questo giro l'ha davvero trovato: altrimenti
-  // un refresh completamente fallito (es. chiave non valida) finirebbe comunque per
-  // scrivere un prezzo "aggiornato" e uno snapshot identico al precedente, mascherando
-  // il fallimento invece di segnalarlo con aggiornati:0 e l'elenco dei falliti.
-  if (cambioAggiornato) {
+  let cambio = cambioEurUsdCorrente(prezziStorico);
+  const cambioTrovato = await conTimeout(recuperaCambio(modello), TIMEOUT_CAMBIO_MS, null);
+  if (cambioTrovato != null) {
+    cambio = cambioTrovato;
+    // Il tasso si registra solo se questo giro l'ha davvero trovato: altrimenti un
+    // refresh fallito scriverebbe comunque un prezzo "aggiornato" e uno snapshot
+    // identico al precedente, mascherando il fallimento invece di segnalarlo.
     nuoviPrezzi.push({
       isin: "EURUSD",
       data: oggi,
@@ -204,7 +224,7 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
     `quarantena prezzi ${oggi}`
   );
 
-  if (nuoviPrezzi.length > 0) await registraSnapshot();
+  if (aggiornatiReali > 0) await registraSnapshot();
 
   return {
     aggiornati: aggiornatiReali,
@@ -213,6 +233,39 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
     cambioEurUsd: cambio,
     ...(falliti.length && primoErrore ? { dettaglioErrore: primoErrore } : {}),
   };
+}
+
+/**
+ * Refresh completo in un colpo solo. Usato dallo scheduler notturno, dove non
+ * c'è un browser a orchestrare: tutti i lotti in parallelo, poi un unico
+ * salvataggio. Il browser usa invece recuperaLotto() + salvaRaccolti(), che
+ * spezzano il lavoro in richieste HTTP separate e brevi per costruzione.
+ */
+export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
+  const strumenti = await readData("strumenti");
+  const modello = await modelloCorrente();
+  const lotti = dividiInLotti(strumenti);
+
+  const risultatiLotti = await Promise.all(
+    lotti.map((lotto) =>
+      conTimeout(elaboraLotto(lotto, modello), TIMEOUT_LOTTO_MS, {
+        raccolti: [],
+        falliti: lotto.map((s) => s.isin),
+        errore: `nessuna risposta entro ${TIMEOUT_LOTTO_MS / 1000}s`,
+      })
+    )
+  );
+
+  const raccolti: PrezzoRaccolto[] = [];
+  const falliti: string[] = [];
+  let primoErrore: string | undefined;
+  for (const r of risultatiLotti) {
+    raccolti.push(...r.raccolti);
+    falliti.push(...r.falliti);
+    if (r.errore && !primoErrore) primoErrore = r.errore;
+  }
+
+  return salvaRaccolti(raccolti, falliti, primoErrore);
 }
 
 /** Ricalcola la vista corrente e appende uno snapshot. Usato dopo un refresh o dopo l'applicazione di un prezzo in quarantena. */
