@@ -259,14 +259,5 @@
     "valuta": "RATE",
     "fonte": "export broker 22/08/2026",
     "raccolto_il": "2026-08-22T00:00:00.000Z"
-  },
-  {
-    "isin": "EURUSD",
-    "data": "2026-08-24",
-    "chiusura": 1.1682,
-    "chiusura_precedente": null,
-    "valuta": "RATE",
-    "fonte": "web search",
-    "raccolto_il": "2026-08-24T09:20:45.304Z"
   }
 ]

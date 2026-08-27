@@ -38,6 +38,7 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
   const modello = await modelloCorrente();
 
   let cambio = cambioEurUsdCorrente(prezziStorico);
+  let cambioAggiornato = false;
   try {
     const testo = await chiedi(
       `Qual è il tasso di cambio EUR/USD più recente (quanti USD per 1 EUR)? ` +
@@ -45,7 +46,10 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
       { maxTokens: 300, effort: "low", model: modello }
     );
     const d = estraiJSON<{ cambio: number }>(testo);
-    if (d.cambio && d.cambio > 0) cambio = d.cambio;
+    if (d.cambio && d.cambio > 0) {
+      cambio = d.cambio;
+      cambioAggiornato = true;
+    }
   } catch {
     // mantiene l'ultimo cambio noto: non è fatale, il fetcher prosegue sui prezzi
   }
@@ -109,15 +113,27 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
     if (li < lotti.length - 1) await attesa(700);
   }
 
-  nuoviPrezzi.push({
-    isin: "EURUSD",
-    data: oggi,
-    chiusura: cambio,
-    chiusura_precedente: null,
-    valuta: "RATE",
-    fonte: "web search",
-    raccolto_il: new Date().toISOString(),
-  });
+  const aggiornatiReali = nuoviPrezzi.length;
+
+  // Il tasso di cambio si registra solo se questo giro l'ha davvero trovato: altrimenti
+  // un refresh completamente fallito (es. chiave non valida) finirebbe comunque per
+  // scrivere un prezzo "aggiornato" e uno snapshot identico al precedente, mascherando
+  // il fallimento invece di segnalarlo con aggiornati:0 e l'elenco dei falliti.
+  if (cambioAggiornato) {
+    nuoviPrezzi.push({
+      isin: "EURUSD",
+      data: oggi,
+      chiusura: cambio,
+      chiusura_precedente: null,
+      valuta: "RATE",
+      fonte: "web search",
+      raccolto_il: new Date().toISOString(),
+    });
+  }
+
+  if (nuoviPrezzi.length === 0 && nuoviSospetti.length === 0) {
+    return { aggiornati: 0, quarantena: 0, falliti, cambioEurUsd: cambio };
+  }
 
   await writeData("prezzi", [...prezziStorico, ...nuoviPrezzi], `refresh prezzi ${oggi}`);
 
@@ -129,9 +145,9 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
     `quarantena prezzi ${oggi}`
   );
 
-  await registraSnapshot();
+  if (nuoviPrezzi.length > 0) await registraSnapshot();
 
-  return { aggiornati: nuoviPrezzi.length - 1, quarantena: nuoviSospetti.length, falliti, cambioEurUsd: cambio };
+  return { aggiornati: aggiornatiReali, quarantena: nuoviSospetti.length, falliti, cambioEurUsd: cambio };
 }
 
 /** Ricalcola la vista corrente e appende uno snapshot. Usato dopo un refresh o dopo l'applicazione di un prezzo in quarantena. */
