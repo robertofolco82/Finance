@@ -30,6 +30,7 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
   const [errore, setErrore] = useState<string | null>(null);
   const [manuale, setManuale] = useState<Record<string, string>>({});
   const [risultatoImport, setRisultatoImport] = useState<RisultatoImportXls | null>(null);
+  const [prezzoManuale, setPrezzoManuale] = useState<Record<string, string>>({});
   const inputXls = useRef<HTMLInputElement | null>(null);
 
   const righeOrdinate = useMemo(() => [...vista.righe].sort((a, b) => b.valore_eur - a.valore_eur), [vista.righe]);
@@ -175,6 +176,36 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
       await ricarica();
     } catch (e) {
       setErrore(`Salvataggio sottostante non riuscito: ${(e as Error).message}`);
+    }
+  }
+
+  /** Prezzo digitato a mano per gli strumenti che nessuna fonte gratuita copre. */
+  async function salvaPrezzoManuale(isin: string) {
+    const grezzo = prezzoManuale[isin]?.trim().replace(",", ".");
+    const prezzo = Number(grezzo);
+    if (!grezzo || !Number.isFinite(prezzo) || prezzo <= 0) {
+      setErrore(`Prezzo non valido per ${isin}.`);
+      return;
+    }
+    setBusy(`man:${isin}`);
+    setErrore(null);
+    try {
+      const res = await fetch("/api/prezzi/manuale", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isin, prezzo }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.errore);
+      if (d.quarantena > 0) {
+        setErrore(`Prezzo di ${isin} messo in quarantena: si scosta oltre il 60% dal precedente. Confermalo qui sotto se è corretto.`);
+      }
+      setPrezzoManuale((m) => ({ ...m, [isin]: "" }));
+      await ricarica();
+    } catch (e) {
+      setErrore(`Salvataggio prezzo non riuscito: ${(e as Error).message}`);
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -414,6 +445,9 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
             manualeValore={manuale[r.strumento.isin] ?? ""}
             onManualeChange={(v) => setManuale((m) => ({ ...m, [r.strumento.isin]: v }))}
             busy={busy}
+            prezzoManualeValore={prezzoManuale[r.strumento.isin] ?? ""}
+            onPrezzoManualeChange={(v) => setPrezzoManuale((m) => ({ ...m, [r.strumento.isin]: v }))}
+            onSalvaPrezzoManuale={salvaPrezzoManuale}
           />
         ))}
       </div>
@@ -430,6 +464,9 @@ function RigaCard({
   manualeValore,
   onManualeChange,
   busy,
+  prezzoManualeValore,
+  onPrezzoManualeChange,
+  onSalvaPrezzoManuale,
 }: {
   r: RigaPortafoglio;
   fondamentali: PortafoglioResponse["fondamentali"][string] | null;
@@ -439,6 +476,9 @@ function RigaCard({
   manualeValore: string;
   onManualeChange: (v: string) => void;
   busy: string | null;
+  prezzoManualeValore: string;
+  onPrezzoManualeChange: (v: string) => void;
+  onSalvaPrezzoManuale: (isin: string) => void;
 }) {
   const s = r.strumento;
   const sotto = s.sottostante || fondamentali?.sotto;
@@ -493,6 +533,46 @@ function RigaCard({
           </div>
         </div>
       </div>
+
+      {s.fonte_prezzo === "manuale" && (
+        <div
+          style={{
+            marginTop: 12,
+            padding: "10px 12px",
+            background: T.warnBg,
+            borderRadius: 9,
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <span style={{ font: `400 12px ${UI}`, color: T.ink, flex: "1 1 240px" }}>
+            Nessuna fonte gratuita quota questo strumento: il prezzo va inserito a mano.
+          </span>
+          <input
+            value={prezzoManualeValore}
+            onChange={(e) => onPrezzoManualeChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onSalvaPrezzoManuale(s.isin);
+            }}
+            inputMode="decimal"
+            placeholder={r.prezzo != null ? String(r.prezzo) : "prezzo"}
+            style={{
+              width: 110,
+              padding: "8px 10px",
+              borderRadius: 8,
+              border: `1px solid ${T.line}`,
+              font: `600 12px ${MONO}`,
+              background: T.surf,
+              color: T.ink,
+            }}
+          />
+          <Btn size="s" variant="accent" onClick={() => onSalvaPrezzoManuale(s.isin)} disabled={busy === `man:${s.isin}`}>
+            {busy === `man:${s.isin}` ? "Salvo…" : "Salva prezzo"}
+          </Btn>
+        </div>
+      )}
 
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${T.line}`, display: "flex", gap: 26, flexWrap: "wrap" }}>
         {!puoFond ? (

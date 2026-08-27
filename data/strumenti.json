@@ -10,7 +10,9 @@
     "valuta": "USD",
     "sottostante": "Compass Pathways (CMPS)",
     "sottostante_verificato": true,
-    "analizzabile": true
+    "analizzabile": true,
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "CMPS"
   },
   {
     "isin": "US8740391003",
@@ -23,7 +25,9 @@
     "valuta": "USD",
     "sottostante": "TSMC (TSM)",
     "sottostante_verificato": true,
-    "analizzabile": true
+    "analizzabile": true,
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "TSM"
   },
   {
     "isin": "NL0010273215",
@@ -36,7 +40,9 @@
     "valuta": "EUR",
     "sottostante": "ASML (ASML)",
     "sottostante_verificato": true,
-    "analizzabile": true
+    "analizzabile": true,
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "ASML.AS"
   },
   {
     "isin": "IE00BFMXXD54",
@@ -51,7 +57,9 @@
     "sottostante_verificato": true,
     "analizzabile": false,
     "motivo_na": "ETF che replica un indice: nessun rating analisti su un paniere.",
-    "nota": "Insieme a IE00B3XXRP09 (VUSA, accumulo+distribuzione) replica lo stesso S&P 500: circa 66.900 €, il 10,6% del portafoglio. In allocazione va letto come un'unica esposizione."
+    "nota": "Insieme a IE00B3XXRP09 (VUSA, accumulo+distribuzione) replica lo stesso S&P 500: circa 66.900 €, il 10,6% del portafoglio. In allocazione va letto come un'unica esposizione.",
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "VUAA.MI"
   },
   {
     "isin": "IE00B3XXRP09",
@@ -66,7 +74,9 @@
     "sottostante_verificato": true,
     "analizzabile": false,
     "motivo_na": "ETF che replica un indice: nessun rating analisti su un paniere.",
-    "nota": "Insieme a IE00BFMXXD54 (VUAA, accumulo) replica lo stesso S&P 500: circa 66.900 €, il 10,6% del portafoglio. In allocazione va letto come un'unica esposizione."
+    "nota": "Insieme a IE00BFMXXD54 (VUAA, accumulo) replica lo stesso S&P 500: circa 66.900 €, il 10,6% del portafoglio. In allocazione va letto come un'unica esposizione.",
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "VUSA.MI"
   },
   {
     "isin": "IE00BLDGHT92",
@@ -80,7 +90,9 @@
     "sottostante": "Euro Stoxx 50 (put write)",
     "sottostante_verificato": true,
     "analizzabile": false,
-    "motivo_na": "Strategia su paniere (put write su indice): nessun rating analisti applicabile."
+    "motivo_na": "Strategia su paniere (put write su indice): nessun rating analisti applicabile.",
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "UIQ4.DE"
   },
   {
     "isin": "DE000VY3NBZ6",
@@ -95,7 +107,9 @@
     "sottostante_verificato": true,
     "emittente": "Vontobel",
     "analizzabile": true,
-    "nota": "Turbo Open-End Long su Micron — verificato su scheda Borsa Italiana/SeDeX."
+    "nota": "Turbo Open-End Long su Micron — verificato su scheda Borsa Italiana/SeDeX.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "cw-e-certificates"
   },
   {
     "isin": "NLBNPIT3MRU4",
@@ -110,7 +124,9 @@
     "sottostante_verificato": true,
     "emittente": "BNP Paribas",
     "analizzabile": true,
-    "nota": "Turbo Unlimited Long, strike/KO USD 25,7263 — KID BNP, 03.08.2026."
+    "nota": "Turbo Unlimited Long, strike/KO USD 25,7263 — KID BNP, 03.08.2026.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "cw-e-certificates"
   },
   {
     "isin": "NLBNPIT37C90",
@@ -124,7 +140,9 @@
     "sottostante": "JD.com Inc ADR (JD)",
     "sottostante_verificato": true,
     "emittente": "BNP Paribas",
-    "analizzabile": true
+    "analizzabile": true,
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "cw-e-certificates"
   },
   {
     "isin": "NLBNPIT3MA79",
@@ -139,7 +157,9 @@
     "sottostante_verificato": true,
     "emittente": "BNP Paribas",
     "analizzabile": false,
-    "motivo_na": "Sottostante è una materia prima (future su Brent): nessun analista lo copre."
+    "motivo_na": "Sottostante è una materia prima (future su Brent): nessun analista lo copre.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "cw-e-certificates"
   },
   {
     "isin": "XS3388190996",
@@ -154,7 +174,8 @@
     "sottostante_verificato": true,
     "emittente": "Leverage Shares",
     "analizzabile": true,
-    "nota": "Posizione a −89,97% dal carico, valore residuo circa 251 €: contabilmente una voce residuale. Da chiudere o tenere è una decisione dell'utente, non ancora presa — vedi §13 della spec."
+    "nota": "Posizione a −89,97% dal carico, valore residuo circa 251 €: contabilmente una voce residuale. Da chiudere o tenere è una decisione dell'utente, non ancora presa — vedi §13 della spec.",
+    "fonte_prezzo": "manuale"
   },
   {
     "isin": "CH1358858129",
@@ -172,7 +193,8 @@
     "barriera": 60,
     "analizzabile": false,
     "motivo_na": "Sottostanti sono indici: nessun rating analisti applicabile.",
-    "nota": "Express a capitale condizionatamente protetto, worst-of. Barriera 60%, scadenza 25/07/2028."
+    "nota": "Express a capitale condizionatamente protetto, worst-of. Barriera 60%, scadenza 25/07/2028.",
+    "fonte_prezzo": "manuale"
   },
   {
     "isin": "CH1336232371",
@@ -189,7 +211,8 @@
     "scadenza": "2029-04-10",
     "barriera": 50,
     "analizzabile": true,
-    "nota": "Express worst-of su tre bancari — unico dei quattro strutturati con sottostanti azionari singoli, quindi supporta rating analisti. Barriera 50%, scadenza 10/04/2029."
+    "nota": "Express worst-of su tre bancari — unico dei quattro strutturati con sottostanti azionari singoli, quindi supporta rating analisti. Barriera 50%, scadenza 10/04/2029.",
+    "fonte_prezzo": "manuale"
   },
   {
     "isin": "IT0006775073",
@@ -207,7 +230,8 @@
     "barriera": 50,
     "analizzabile": false,
     "motivo_na": "Sottostanti sono indici: nessun rating analisti applicabile.",
-    "nota": "Worst-of Memory Phoenix Autocall 36 mesi. Cedola 8,00% p.a., barriera capitale 50%, scadenza 25/04/2029."
+    "nota": "Worst-of Memory Phoenix Autocall 36 mesi. Cedola 8,00% p.a., barriera capitale 50%, scadenza 25/04/2029.",
+    "fonte_prezzo": "manuale"
   },
   {
     "isin": "DE000UR0A4S0",
@@ -225,7 +249,8 @@
     "barriera": 50,
     "analizzabile": false,
     "motivo_na": "Sottostanti sono indici: nessun rating analisti applicabile.",
-    "nota": "Express / Cash Collect memory worst-of. Premi trimestrali 1,6% (6,4% annuo), barriera premi e scadenza 50%, autocall da febbraio 2027 con trigger decrescente dal 95%, scadenza 17/05/2029."
+    "nota": "Express / Cash Collect memory worst-of. Premi trimestrali 1,6% (6,4% annuo), barriera premi e scadenza 50%, autocall da febbraio 2027 con trigger decrescente dal 95%, scadenza 17/05/2029.",
+    "fonte_prezzo": "manuale"
   },
   {
     "isin": "IE00B579F325",
@@ -239,7 +264,9 @@
     "sottostante": "Oro spot (XAU)",
     "sottostante_verificato": true,
     "analizzabile": false,
-    "motivo_na": "Materia prima: nessun analista copre un lingotto."
+    "motivo_na": "Materia prima: nessun analista copre un lingotto.",
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "SGLD.MI"
   },
   {
     "isin": "LU0290358497",
@@ -253,7 +280,9 @@
     "sottostante": "€STR",
     "sottostante_verificato": true,
     "analizzabile": false,
-    "motivo_na": "Monetario: rende il tasso overnight, non ha utili né rating."
+    "motivo_na": "Monetario: rende il tasso overnight, non ha utili né rating.",
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "XEON.MI"
   },
   {
     "isin": "IE00B3VWN179",
@@ -267,7 +296,9 @@
     "sottostante": "US Treasury 1-3y",
     "sottostante_verificato": true,
     "analizzabile": false,
-    "motivo_na": "Paniere obbligazionario: si valuta su YTM e duration, non su rating analisti."
+    "motivo_na": "Paniere obbligazionario: si valuta su YTM e duration, non su rating analisti.",
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "CSBGU3.MI"
   },
   {
     "isin": "LU1287023185",
@@ -281,7 +312,9 @@
     "sottostante": "Euro Gov 7-10y",
     "sottostante_verificato": true,
     "analizzabile": false,
-    "motivo_na": "Paniere obbligazionario: si valuta su YTM e duration, non su rating analisti."
+    "motivo_na": "Paniere obbligazionario: si valuta su YTM e duration, non su rating analisti.",
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "EM710.MI"
   },
   {
     "isin": "IE000UWJUW87",
@@ -295,7 +328,9 @@
     "sottostante": "Catastrophe bond",
     "sottostante_verificato": true,
     "analizzabile": false,
-    "motivo_na": "Cat bond: il driver è la sinistrosità assicurativa, non gli utili."
+    "motivo_na": "Cat bond: il driver è la sinistrosità assicurativa, non gli utili.",
+    "fonte_prezzo": "yahoo",
+    "simbolo_yahoo": "CATB.MI"
   },
   {
     "isin": "IT0005436693",
@@ -313,7 +348,9 @@
     "scadenza": "2031-08-01",
     "frequenza_cedolare": 2,
     "analizzabile": false,
-    "motivo_na": "Titolo di Stato: si valuta su YTM, duration e rating dell'emittente, non su consenso analisti."
+    "motivo_na": "Titolo di Stato: si valuta su YTM, duration e rating dell'emittente, non su consenso analisti.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "obbligazioni/mot/btp"
   },
   {
     "isin": "BE0000351602",
@@ -331,7 +368,9 @@
     "scadenza": "2027-10-22",
     "frequenza_cedolare": 1,
     "analizzabile": false,
-    "motivo_na": "Titolo di Stato."
+    "motivo_na": "Titolo di Stato.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "obbligazioni/mot/obbligazioni-in-euro"
   },
   {
     "isin": "AT0000A2VB47",
@@ -349,7 +388,9 @@
     "scadenza": "2028-10-20",
     "frequenza_cedolare": 1,
     "analizzabile": false,
-    "motivo_na": "Titolo di Stato."
+    "motivo_na": "Titolo di Stato.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "obbligazioni/mot/obbligazioni-in-euro"
   },
   {
     "isin": "EU000A283859",
@@ -367,7 +408,9 @@
     "scadenza": "2030-10-04",
     "frequenza_cedolare": 1,
     "analizzabile": false,
-    "motivo_na": "Emittente sovranazionale."
+    "motivo_na": "Emittente sovranazionale.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "obbligazioni/mot/obbligazioni-in-euro"
   },
   {
     "isin": "DE0001102523",
@@ -385,7 +428,9 @@
     "scadenza": "2027-11-15",
     "frequenza_cedolare": 1,
     "analizzabile": false,
-    "motivo_na": "Titolo di Stato."
+    "motivo_na": "Titolo di Stato.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "obbligazioni/mot/obbligazioni-in-euro"
   },
   {
     "isin": "FR0014007L00",
@@ -403,7 +448,9 @@
     "scadenza": "2032-05-25",
     "frequenza_cedolare": 1,
     "analizzabile": false,
-    "motivo_na": "Titolo di Stato."
+    "motivo_na": "Titolo di Stato.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "obbligazioni/mot/obbligazioni-in-euro"
   },
   {
     "isin": "XS1503043694",
@@ -421,7 +468,9 @@
     "scadenza": "2029-09-14",
     "frequenza_cedolare": 1,
     "analizzabile": false,
-    "motivo_na": "Emittente sovranazionale."
+    "motivo_na": "Emittente sovranazionale.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "obbligazioni/mot/obbligazioni-in-euro"
   },
   {
     "isin": "XS2388495942",
@@ -439,6 +488,8 @@
     "scadenza": "2026-12-22",
     "frequenza_cedolare": 1,
     "analizzabile": false,
-    "motivo_na": "Emittente sovranazionale."
+    "motivo_na": "Emittente sovranazionale.",
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "obbligazioni/mot/obbligazioni-in-euro"
   }
 ]

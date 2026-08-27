@@ -8,11 +8,13 @@ README copre solo setup e deploy.
 ## Architettura
 
 ```
-Vercel Cron (feriali, 22:30 CET/CEST)
+Tu premi "Aggiorna prezzi"  (nessun automatismo: parte solo su tua richiesta)
         │
         ▼
-/api/cron/refresh-prezzi  ──►  Claude (web search) per prezzo + chiusura precedente
-        │                       ogni 28 ISIN, a lotti di 5, con quarantena al 60%
+il browser chiama /api/refresh/lotto una volta per lotto, in parallelo
+        │            └─► fonti gratuite: Yahoo Finance + Borsa Italiana + BCE
+        ▼
+/api/refresh/salva  ──►  quarantena al 60%, poi scrive
         ▼
 data/*.json nel repo GitHub  ◄── letti/scritti via GitHub Contents API (Octokit)
         │                        (in locale: filesystem diretto, vedi sotto)
@@ -23,13 +25,22 @@ Next.js API routes  ──►  frontend React (nessuna chiave lato client)
 Decisioni chiave (motivate in `SPEC.md` §2, §6, §13):
 
 - **Vercel** invece di verificare cosa supporta l'hosting personale: gratuito, deploy
-  diretto da questo repo, funzioni serverless per l'API, cron incluso. La chiave
-  Anthropic vive solo nelle env var del progetto Vercel.
-- **Nessun provider dati di mercato a pagamento.** I prezzi si ricavano con la stessa
-  tecnica del prototipo (Claude + ricerca web), ma irrobustita: batch da 5 titoli,
-  retry con backoff su 429/5xx/529, chiusura precedente salvata per il P&L giornaliero,
-  quarantena obbligatoria sopra il 60% di scostamento dall'ultimo prezzo *scaricato*
-  (non dall'export).
+  diretto da questo repo, funzioni serverless per l'API. La chiave
+  Anthropic vive solo nelle env var del progetto Vercel, e serve soltanto alle
+  funzioni a richiesta (rating, analisi, chat) — non ai prezzi.
+- **Prezzi da fonti gratuite, non da LLM.** La ricerca web via Claude impiegava oltre
+  35 secondi per 5 titoli e costava a ogni giro; le fonti dirette rispondono in
+  frazioni di secondo, gratis, e non possono "leggere male" un numero — l'errore da
+  24× che aveva falsato il prototipo nasceva proprio lì. Copertura verificata sui 28
+  ISIN reali: **Yahoo Finance 11** (azioni ed ETF, con chiusura precedente), **Borsa
+  Italiana 12** (titoli di Stato su MOT, certificati su SeDeX), **BCE** per il cambio
+  EUR/USD. I **5 rimanenti** — i 4 strutturati EuroTLX e l'ETP SK Hynix — non sono
+  quotati da nessuna fonte gratuita e hanno un campo di inserimento manuale nella
+  scheda (§6.3). Resta la quarantena obbligatoria sopra il 60% di scostamento
+  dall'ultimo prezzo *scaricato*, applicata anche ai prezzi inseriti a mano.
+- **Nessun automatismo.** Ogni aggiornamento parte da un tuo clic. Non c'è cron: se in
+  futuro ne volessi uno, va aggiunto a `vercel.json` con un endpoint che orchestri i
+  lotti (il limite di 60s vale anche lì, dove non c'è un browser a spezzarli).
 - **Store dati = questo repo.** I file in `data/*.json` sono lo storico versionato
   (§2.1: "anche solo JSON versionati su disco"). Zero database esterni da configurare.
 
@@ -41,28 +52,20 @@ Copia `.env.example` e compila:
 
 | Variabile | Cosa serve |
 |---|---|
-| `ANTHROPIC_API_KEY` | Prezzi, sottostanti, rating, analisi, chat, track record. Server-side only. |
+| `ANTHROPIC_API_KEY` | Serve **solo** alle funzioni a richiesta: rating analisti, analisi, chat, sottostanti, lettura PDF delle call. I prezzi non la usano più. Server-side only. |
 | `ANTHROPIC_MODEL` | Scelta di partenza (default nel codice `claude-opus-5` se lasci vuoto). Una volta impostato un modello dal menù a tendina in dashboard, quella scelta ha sempre la priorità — vedi [Costi](#costi). |
 | `GITHUB_TOKEN` | Fine-grained personal access token con **Contents: Read and write** solo su questo repo (Settings → Developer settings → Fine-grained tokens). Usato dalle funzioni Vercel per leggere/scrivere `data/*.json`. |
 | `GITHUB_REPO` | `robertofolco82/finance` |
 | `GITHUB_BRANCH` | Il branch che Vercel sta effettivamente servendo (le scritture vanno lì). |
-| `CRON_SECRET` | Stringa casuale (`openssl rand -hex 32`); Vercel la invia da sola come header sulle chiamate cron. |
 
 ### 2. Deploy su Vercel
 
 1. Importa questo repository su [vercel.com/new](https://vercel.com/new).
 2. Imposta le variabili d'ambiente sopra nel progetto Vercel (Production **e** Preview
    se vuoi testare da branch diversi).
-3. Deploy. Il cron in `vercel.json` si registra da solo (feriali, 22:30 CET/CEST —
-   nota DST sotto).
+3. Deploy.
 4. Apri l'URL `*.vercel.app` da iPhone Safari (dispositivo primario, §1.1) o punta
    un tuo dominio.
-
-**Nota fuso orario:** il cron è un orario UTC fisso (`30 20 * * 1-5` = 20:30 UTC),
-non si adatta automaticamente all'ora legale. Corrisponde a 22:30 in CEST (estate);
-in CET (inverno) scatta alle 21:30 locali. Per un aggiornamento giornaliero on-demand
-questa deriva di un'ora due volte l'anno è irrilevante — se non lo è per te, aggiorna
-manualmente `vercel.json` al cambio d'ora.
 
 ### 3. Sviluppo locale
 
@@ -103,27 +106,27 @@ npm run build   # build di produzione, stesso comando che gira su Vercel
   contiene). Le posizioni presenti in portafoglio ma assenti dal file vengono
   segnalate, non vendute in automatico.
 - **Piano Vercel Hobby: funzioni limitate a 60s.** Il limite vale per *ogni singola
-  richiesta HTTP*, non per l'operazione nel suo insieme. "Aggiorna prezzi" perciò
-  non è più un'unica richiesta lunga: il browser chiama `/api/refresh/lotto` una
-  volta per lotto (una richiesta = una chiamata a Claude, sempre breve), in
-  parallelo e con progresso visibile, poi `/api/refresh/salva` una volta sola per
-  quarantena e scritture. Così il limite non è più raggiungibile per costruzione,
-  qualunque sia il numero di titoli. "Aggiorna rating" su tutti i titoli
-  analizzabili resta invece una richiesta unica e sequenziale, e può superare il
-  limite: se lì vedi un errore non-JSON (è la pagina d'errore di Vercel, non una
-  risposta dell'app), lancia `POST /api/rating/:isin` titolo per titolo o passa al
-  piano Pro. Lo scheduler notturno usa ancora `/api/refresh` in un colpo solo,
-  perché lì non c'è un browser a orchestrare: se dovesse eccedere, va spezzato
-  allo stesso modo.
+  richiesta HTTP*, non per l'operazione nel suo insieme. "Aggiorna prezzi" perciò non
+  è un'unica richiesta lunga: il browser chiama `/api/refresh/lotto` una volta per
+  lotto, in parallelo e con progresso visibile, poi `/api/refresh/salva` una volta
+  sola. Con le fonti gratuite un giro completo sui 28 titoli si chiude in circa 5
+  secondi. **"Aggiorna rating"** resta invece una richiesta unica e sequenziale che
+  usa l'LLM, e può superare il limite: se lì vedi un errore non-JSON (è la pagina
+  d'errore di Vercel, non una risposta dell'app), usa `POST /api/rating/:isin` titolo
+  per titolo o passa al piano Pro.
 - **ETP SK Hynix (XS3388190996) a −90%** resta in portafoglio di default (§13,
   decisione non ancora presa nella spec). Rimuoverlo dai calcoli in versioni future
   volesse dire eliminare le sue righe da `strumenti.json`/`movimenti.json`.
 - **Storico rating vuoto all'avvio.** Non è acquistabile a posteriori (dato
   licenziato FactSet/LSEG/Visible Alpha, §3.2): si popola da oggi in avanti, una
   rilevazione alla volta, premendo "Aggiorna rating".
-- **Cadenza rating consenso:** nessun cron automatico dedicato — "Aggiorna rating"
-  va premuto manualmente dalla dashboard (o schedulato aggiungendo un secondo Vercel
-  Cron verso `/api/rating/tutti` se vuoi automatizzarlo settimanalmente).
+- **Fonti prezzi non ufficiali.** Yahoo Finance non è un servizio con contratto e
+  Borsa Italiana viene letta dalle pagine pubbliche: se cambiano struttura, quei
+  prezzi smettono di arrivare. Non è un rischio silenzioso — i titoli non aggiornati
+  vengono elencati con il motivo, e restano l'inserimento manuale e la quarantena a
+  impedire che un valore sbagliato entri nei totali. La mappatura simbolo/percorso
+  sta in `data/strumenti.json` (`simbolo_yahoo`, `percorso_borsait`) ed è verificabile
+  con gli script in `scripts/` (`node scripts/verifica-yahoo.mjs`).
 - **`npm audit` segnala alcune vulnerabilità** in dipendenze transitive: `postcss`/
   `sharp` (interne a Next.js 15, corrette solo in Next 16 — non riguardano
   funzionalità usate qui, niente `next/image` né CSS da input utente) e `uuid` (via
