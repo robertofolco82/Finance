@@ -259,5 +259,122 @@
     "valuta": "RATE",
     "fonte": "export broker 22/08/2026",
     "raccolto_il": "2026-08-22T00:00:00.000Z"
+  },
+  {
+    "isin": "DE000VY3NBZ6",
+    "data": "2026-08-27",
+    "chiusura": 2.905,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "NLBNPIT3MRU4",
+    "data": "2026-08-27",
+    "chiusura": 2.905,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "NLBNPIT37C90",
+    "data": "2026-08-27",
+    "chiusura": 8.03,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "NLBNPIT3MA79",
+    "data": "2026-08-27",
+    "chiusura": 45.2,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "IT0005436693",
+    "data": "2026-08-27",
+    "chiusura": 87.39,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "BE0000351602",
+    "data": "2026-08-27",
+    "chiusura": 96.9,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "AT0000A2VB47",
+    "data": "2026-08-27",
+    "chiusura": 94.07,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "EU000A283859",
+    "data": "2026-08-27",
+    "chiusura": 88.57,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "DE0001102523",
+    "data": "2026-08-27",
+    "chiusura": 96.8,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "FR0014007L00",
+    "data": "2026-08-27",
+    "chiusura": 82,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "XS1503043694",
+    "data": "2026-08-27",
+    "chiusura": 92.12,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "XS2388495942",
+    "data": "2026-08-27",
+    "chiusura": 99.408,
+    "chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-27T23:01:07.711Z"
+  },
+  {
+    "isin": "EURUSD",
+    "data": "2026-08-27",
+    "chiusura": 1.1645,
+    "chiusura_precedente": null,
+    "valuta": "RATE",
+    "fonte": "BCE via Frankfurter",
+    "raccolto_il": "2026-08-27T23:01:07.753Z"
   }
 ]
