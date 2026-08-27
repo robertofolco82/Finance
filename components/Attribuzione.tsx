@@ -1,64 +1,133 @@
 "use client";
 
-import { useState } from "react";
-import { N, Card, Label } from "./ui";
-import { T, UI, nf, pc, sg } from "@/lib/theme";
+import { useMemo } from "react";
+import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Card, Label, N } from "./ui";
+import { OMBRA, T, UI, nf, pc, sg } from "@/lib/theme";
 import type { RigaAttribuzione } from "@/lib/calc";
 
-/** §5.6: barra unica, larghezza = peso, intensità colore = contributo al movimento. */
+interface Punto {
+  isin: string;
+  nome: string;
+  dEur: number;
+  dPct: number | null;
+  peso: number;
+}
+
+/**
+ * §5.6 — chi ha mosso il totale. Istogramma verticale con base sullo zero:
+ * l'altezza è la variazione in euro, il verso distingue guadagno da perdita.
+ *
+ * La direzione della barra è una seconda codifica oltre al colore: verde e rosso
+ * hanno una separazione insufficiente per la deuteranopia (ΔE 6,4), quindi da soli
+ * non basterebbero — sopra/sotto la linea dello zero sì.
+ */
 export function Attribuzione({ righe, totale }: { righe: RigaAttribuzione[]; totale: number }) {
-  const [h, setH] = useState<RigaAttribuzione | null>(null);
+  const dati = useMemo<Punto[]>(
+    () =>
+      righe
+        .map((r) => ({
+          isin: r.isin,
+          nome: r.nome,
+          dEur: r.dEur,
+          dPct: r.dPct,
+          peso: totale ? (r.valore_eur / totale) * 100 : 0,
+        }))
+        .sort((a, b) => b.dEur - a.dEur),
+    [righe, totale]
+  );
+
   if (righe.length === 0 || totale === 0) return null;
 
-  // Nessuno snapshot precedente con cui confrontare (primo avvio, o subito dopo un
-  // refresh completamente fallito): ogni riga avrebbe dPct null. Un placeholder è
-  // più onesto di una barra a intensità 0 che sembra solo "rotta".
-  const nessunoStorico = righe.every((r) => r.dPct == null);
-  if (nessunoStorico) {
+  // Nessuno storico con cui confrontare: un istogramma tutto a zero sembrerebbe
+  // rotto, meglio dirlo.
+  if (righe.every((r) => r.dPct == null)) {
     return (
       <Card>
         <Label>Chi ha mosso il totale</Label>
         <div style={{ marginTop: 10, font: `400 13px/1.6 ${UI}`, color: T.mut }}>
-          Ancora nessuno storico da confrontare. Compare qui a partire dal secondo "Aggiorna prezzi".
+          Ancora nessuno storico da confrontare. Compare qui a partire dal secondo &quot;Aggiorna prezzi&quot;.
         </div>
       </Card>
     );
   }
 
-  const ord = [...righe].sort((a, b) => Math.abs(b.dEur) - Math.abs(a.dEur));
-  const maxAbs = Math.max(...ord.map((r) => Math.abs(r.dEur)), 1);
+  const mossi = dati.filter((d) => Math.abs(d.dEur) > 0.005);
+  const su = mossi[0];
+  const giu = mossi[mossi.length - 1];
 
   return (
     <Card>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
         <Label>Chi ha mosso il totale</Label>
-        <span style={{ font: `400 11px ${UI}`, color: T.faint }}>larghezza = peso · intensità = contributo</span>
+        <span style={{ font: `400 11px ${UI}`, color: T.faint }}>variazione in € dall&apos;ultimo aggiornamento</span>
       </div>
-      <div style={{ display: "flex", height: 40, marginTop: 14, borderRadius: 8, overflow: "hidden", background: T.surf2 }}>
-        {ord.map((r) => {
-          const w = (r.valore_eur / totale) * 100;
-          const intensita = Math.min(1, Math.abs(r.dEur) / maxAbs);
-          const base = r.dEur > 0 ? T.pos : r.dEur < 0 ? T.neg : T.line;
-          return (
-            <div
-              key={r.isin}
-              onMouseEnter={() => setH(r)}
-              onMouseLeave={() => setH(null)}
-              style={{ width: `${w}%`, background: base, opacity: 0.14 + intensita * 0.86, borderRight: "1px solid #fff", cursor: "default" }}
+
+      <div style={{ height: 168, marginTop: 12, marginLeft: -10 }}>
+        <ResponsiveContainer>
+          <BarChart data={dati} margin={{ top: 8, right: 6, bottom: 4, left: 0 }} barCategoryGap="18%">
+            <XAxis dataKey="isin" hide />
+            <YAxis
+              width={52}
+              tick={{ fill: T.faint, fontSize: 10 }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v: number) => (v === 0 ? "0" : `${v > 0 ? "+" : ""}${Math.round(v / 100) / 10}k`)}
             />
-          );
-        })}
+            <ReferenceLine y={0} stroke={T.line} strokeWidth={1} />
+            <Tooltip cursor={{ fill: T.surf2, opacity: 0.6 }} content={<Etichetta />} />
+            <Bar dataKey="dEur" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+              {dati.map((d) => (
+                <Cell key={d.isin} fill={d.dEur >= 0 ? T.pos : T.neg} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
-      <div style={{ marginTop: 12, minHeight: 20, font: `400 12px ${UI}`, color: T.mut }}>
-        {h ? (
-          <>
-            <strong style={{ color: T.ink }}>{h.nome}</strong> · peso {((h.valore_eur / totale) * 100).toFixed(1)}% ·{" "}
-            <N s={12} c={sg(h.dEur)}>{pc(h.dPct)}</N> · <N s={12} c={sg(h.dEur)}>{nf(h.dEur)} €</N>
-          </>
-        ) : (
-          "Passa sopra un segmento per il dettaglio."
+
+      <div style={{ marginTop: 10, display: "grid", gap: 4, font: `400 12px/1.5 ${UI}`, color: T.mut }}>
+        {su && su.dEur > 0 && (
+          <div>
+            Sale di più: <strong style={{ color: T.ink }}>{su.nome}</strong>{" "}
+            <N s={12} c={T.pos}>+{nf(su.dEur)} €</N>
+          </div>
         )}
+        {giu && giu.dEur < 0 && (
+          <div>
+            Scende di più: <strong style={{ color: T.ink }}>{giu.nome}</strong>{" "}
+            <N s={12} c={T.neg}>{nf(giu.dEur)} €</N>
+          </div>
+        )}
+        {!mossi.length && <span>Nessun movimento rilevato.</span>}
       </div>
     </Card>
+  );
+}
+
+/** Tooltip: tocca o passa sopra una barra per il dettaglio del singolo titolo. */
+function Etichetta({ active, payload }: { active?: boolean; payload?: { payload: Punto }[] }) {
+  const p = active ? payload?.[0]?.payload : null;
+  if (!p) return null;
+  return (
+    <div
+      style={{
+        background: T.surf,
+        border: `1px solid ${T.line}`,
+        borderRadius: 10,
+        boxShadow: OMBRA,
+        padding: "9px 11px",
+        maxWidth: 230,
+      }}
+    >
+      <div style={{ font: `700 12px ${UI}`, color: T.ink }}>{p.nome}</div>
+      <div style={{ marginTop: 5, display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
+        <N s={13} c={sg(p.dEur)}>
+          {p.dEur >= 0 ? "+" : ""}
+          {nf(p.dEur)} €
+        </N>
+        <N s={11} c={sg(p.dEur)}>{pc(p.dPct)}</N>
+      </div>
+      <div style={{ marginTop: 3, font: `400 10px ${UI}`, color: T.faint }}>peso {p.peso.toFixed(1)}% del totale</div>
+    </div>
   );
 }

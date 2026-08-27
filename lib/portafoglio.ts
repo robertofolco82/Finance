@@ -3,7 +3,7 @@
  * dello store in un'unica struttura pronta per l'API/frontend. Nessuna scrittura qui.
  */
 
-import { readData, ultimoPrezzo, cambioEurUsdCorrente } from "./store";
+import { readData, ultimoPrezzo, cambioEurUsdCorrente, chiusuraPrecedente } from "./store";
 import {
   anniAllaScadenza,
   attribuzione,
@@ -46,6 +46,8 @@ export interface VistaPortafoglio {
   totale_eur: number;
   cambioEurUsd: number;
   pnlGiorno: PnlGiorno;
+  /** Data della chiusura usata come base del P&L giornaliero, quando deriva dallo storico. */
+  dataRiferimentoPnl: string | null;
   pnlTotale: PnlTotale;
   variazioneUltimoRefresh: { eur: number; pct: number } | null;
   gruppiMacro: GruppoMacro[];
@@ -76,6 +78,7 @@ export async function costruisciVista(): Promise<VistaPortafoglio> {
     const pos = posizioneDaMovimenti(s, movimentiPer(movimenti, s.isin));
     const p = ultimoPrezzo(prezzi, s.isin);
     const prezzo = p?.chiusura ?? null;
+    const prec = chiusuraPrecedente(prezzi, s.isin);
     const valore_eur = prezzo != null ? valoreEur(s, prezzo, pos.quantita, cambio) : 0;
     const serie = prezzi
       .filter((x) => x.isin === s.isin)
@@ -92,7 +95,7 @@ export async function costruisciVista(): Promise<VistaPortafoglio> {
 
     const var_carico_pct = pos.pmc != null && pos.pmc !== 0 && prezzo != null ? ((prezzo - pos.pmc) / pos.pmc) * 100 : null;
 
-    return { strumento: s, pos, prezzo, chiusura_precedente: p?.chiusura_precedente ?? null, valore_eur, serie, ytm: y, duration: dur, var_carico_pct };
+    return { strumento: s, pos, prezzo, chiusura_precedente: prec?.valore ?? null, data_riferimento_precedente: prec?.data ?? null, valore_eur, serie, ytm: y, duration: dur, var_carico_pct };
   });
 
   const totale_eur = righeBase.reduce((s, r) => s + r.valore_eur, 0);
@@ -119,6 +122,12 @@ export async function costruisciVista(): Promise<VistaPortafoglio> {
   });
 
   const caricoTotale = righe.reduce((s, r) => s + r.carico_eur, 0);
+
+  const dateRiferimento = righeBase
+    .map((r) => r.data_riferimento_precedente)
+    .filter((d): d is string => !!d)
+    .sort();
+  const dataRiferimentoPnl = dateRiferimento[dateRiferimento.length - 1] ?? null;
 
   const pGiorno = pnlGiorno(
     righe.map((r) => ({
@@ -152,6 +161,7 @@ export async function costruisciVista(): Promise<VistaPortafoglio> {
     totale_eur,
     cambioEurUsd: cambio,
     pnlGiorno: pGiorno,
+    dataRiferimentoPnl,
     pnlTotale: pTotale,
     variazioneUltimoRefresh,
     gruppiMacro,

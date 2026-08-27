@@ -157,6 +157,27 @@ export function ultimoPrezzo(prezzi: PrezzoRecord[], isin: string): PrezzoRecord
   return dello.reduce((a, b) => (a.data > b.data ? a : b));
 }
 
+/**
+ * Chiusura precedente effettiva per il P&L giornaliero (§5.2).
+ *
+ * Prima sceglie quella dichiarata dalla fonte (la espone solo stockanalysis.com);
+ * altrimenti ricade sull'ultimo prezzo registrato in una data ANTERIORE — che è
+ * letteralmente la chiusura di una seduta precedente, non un valore inventato.
+ * Restituisce anche la data di riferimento, perché la UI deve poter dire rispetto
+ * a quando sta misurando invece di lasciarlo intendere.
+ */
+export function chiusuraPrecedente(
+  prezzi: PrezzoRecord[],
+  isin: string
+): { valore: number; data: string | null } | null {
+  const dello = prezzi.filter((p) => p.isin === isin).sort((a, b) => a.data.localeCompare(b.data));
+  const ultimo = dello[dello.length - 1];
+  if (!ultimo) return null;
+  if (ultimo.chiusura_precedente != null) return { valore: ultimo.chiusura_precedente, data: null };
+  const anteriore = [...dello].reverse().find((p) => p.data < ultimo.data);
+  return anteriore ? { valore: anteriore.chiusura, data: anteriore.data } : null;
+}
+
 /** Cambio EUR/USD più recente, dalla pseudo-riga "EURUSD" nello storico prezzi. */
 export function cambioEurUsdCorrente(prezzi: PrezzoRecord[]): number {
   const r = ultimoPrezzo(prezzi, "EURUSD");

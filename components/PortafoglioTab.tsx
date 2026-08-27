@@ -41,6 +41,17 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
   }));
   const aggiornati = vista.righe.filter((r) => r.prezzo != null).length;
 
+  // La base del P&L giornaliero può essere di qualche giorno fa, se non aggiorni
+  // ogni giorno. Chiamarlo comunque "di oggi" sarebbe fuorviante su un dato
+  // finanziario: sopra i 3 giorni l'intestazione dice esplicitamente da quando misura.
+  const giorniDallaBase = vista.dataRiferimentoPnl
+    ? Math.round((Date.now() - new Date(vista.dataRiferimentoPnl).getTime()) / 86400000)
+    : 0;
+  const baseRecente = giorniDallaBase <= 3;
+  const titoloPnlGiorno = baseRecente
+    ? "P&L di oggi"
+    : `Dalla chiusura del ${new Date(vista.dataRiferimentoPnl as string).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" })}`;
+
   /**
    * Orchestra il refresh dal browser: un lotto per richiesta HTTP, in parallelo,
    * poi un unico salvataggio. Il browser non ha il limite di durata che hanno le
@@ -259,7 +270,7 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
               </div>
               <div>
                 <div style={{ font: `600 9px ${UI}`, letterSpacing: ".09em", textTransform: "uppercase", color: T.faint, marginBottom: 6 }}>
-                  P&amp;L di oggi
+                  {titoloPnlGiorno}
                 </div>
                 {vista.pnlGiorno.assente ? (
                   <span style={{ font: `400 12px ${UI}`, color: T.faint }}>premi Aggiorna prezzi</span>
@@ -273,7 +284,10 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
                       <Chip v={vista.pnlGiorno.pct} s={12} />
                     </div>
                     <div style={{ marginTop: 5, font: `400 10px ${UI}`, color: T.faint }}>
-                      su {vista.pnlGiorno.copertura}/{vista.pnlGiorno.totali} titoli con chiusura precedente
+                      su {vista.pnlGiorno.copertura}/{vista.pnlGiorno.totali} titoli
+                      {vista.dataRiferimentoPnl && baseRecente
+                        ? `, rispetto al ${new Date(vista.dataRiferimentoPnl).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" })}`
+                        : ""}
                     </div>
                   </>
                 )}

@@ -175,7 +175,8 @@
     "emittente": "Leverage Shares",
     "analizzabile": true,
     "nota": "Posizione a −89,97% dal carico, valore residuo circa 251 €: contabilmente una voce residuale. Da chiudere o tenere è una decisione dell'utente, non ancora presa — vedi §13 della spec.",
-    "fonte_prezzo": "manuale"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "etc-etn"
   },
   {
     "isin": "CH1358858129",
@@ -194,7 +195,8 @@
     "analizzabile": false,
     "motivo_na": "Sottostanti sono indici: nessun rating analisti applicabile.",
     "nota": "Express a capitale condizionatamente protetto, worst-of. Barriera 60%, scadenza 25/07/2028.",
-    "fonte_prezzo": "manuale"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "cw-e-certificates/eurotlx"
   },
   {
     "isin": "CH1336232371",
@@ -212,7 +214,8 @@
     "barriera": 50,
     "analizzabile": true,
     "nota": "Express worst-of su tre bancari — unico dei quattro strutturati con sottostanti azionari singoli, quindi supporta rating analisti. Barriera 50%, scadenza 10/04/2029.",
-    "fonte_prezzo": "manuale"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "cw-e-certificates/eurotlx"
   },
   {
     "isin": "IT0006775073",
@@ -231,7 +234,8 @@
     "analizzabile": false,
     "motivo_na": "Sottostanti sono indici: nessun rating analisti applicabile.",
     "nota": "Worst-of Memory Phoenix Autocall 36 mesi. Cedola 8,00% p.a., barriera capitale 50%, scadenza 25/04/2029.",
-    "fonte_prezzo": "manuale"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "cw-e-certificates/eurotlx"
   },
   {
     "isin": "DE000UR0A4S0",
@@ -250,7 +254,8 @@
     "analizzabile": false,
     "motivo_na": "Sottostanti sono indici: nessun rating analisti applicabile.",
     "nota": "Express / Cash Collect memory worst-of. Premi trimestrali 1,6% (6,4% annuo), barriera premi e scadenza 50%, autocall da febbraio 2027 con trigger decrescente dal 95%, scadenza 17/05/2029.",
-    "fonte_prezzo": "manuale"
+    "fonte_prezzo": "borsaitaliana",
+    "percorso_borsait": "cw-e-certificates/eurotlx"
   },
   {
     "isin": "IE00B579F325",
