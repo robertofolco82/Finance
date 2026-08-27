@@ -20,6 +20,20 @@ import type { PrezzoRecord, PrezzoSospetto, Strumento } from "./types";
 const SOGLIA_QUARANTENA = 0.6;
 const LOTTO = 5;
 
+// Limite nostro, più stretto dei 60s di Vercel (Hobby): lascia margine per le
+// scritture su GitHub che seguono (prezzi, sospetti, snapshot). Il retry con
+// backoff dentro chiedi() può da solo avvicinarsi o superare i 60s se un lotto
+// incontra ripetuti 429/5xx — senza questo taglio, un singolo lotto lento
+// trascina giù l'intera risposta (Vercel la interrompe restituendo una pagina
+// d'errore invece del nostro JSON). Qui invece degradiamo noi stessi, in modo
+// controllato: quel lotto risulta "non riuscito questa volta", gli altri restano validi.
+const TIMEOUT_LOTTO_MS = 35_000;
+const TIMEOUT_CAMBIO_MS = 12_000;
+
+export function conTimeout<T>(promessa: Promise<T>, ms: number, valoreScaduto: T): Promise<T> {
+  return Promise.race([promessa, new Promise<T>((resolve) => setTimeout(() => resolve(valoreScaduto), ms))]);
+}
+
 export interface RisultatoRefresh {
   aggiornati: number;
   quarantena: number;
@@ -126,11 +140,21 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
   // Tutte le chiamate insieme, non una dopo l'altra: con la ricerca web reale ogni
   // lotto richiede diversi secondi, e in sequenza 7 lotti superano facilmente il
   // limite di 60s delle funzioni Vercel. In parallelo il tempo totale è quello del
-  // lotto più lento, non la somma di tutti — il retry con backoff dentro chiedi()
-  // resta la difesa contro eventuali 429 dovuti alla concorrenza.
+  // lotto più lento — per questo ogni lotto ha anche un timeout proprio: se anche
+  // uno solo si incaglia (retry ripetuti, ricerche lente), non deve poter trascinare
+  // giù l'intera risposta.
   const [cambioTrovato, risultatiLotti] = await Promise.all([
-    recuperaCambio(modello),
-    Promise.all(lotti.map((lotto) => elaboraLotto(lotto, modello, oggi, prezziStorico))),
+    conTimeout(recuperaCambio(modello), TIMEOUT_CAMBIO_MS, null),
+    Promise.all(
+      lotti.map((lotto) =>
+        conTimeout(elaboraLotto(lotto, modello, oggi, prezziStorico), TIMEOUT_LOTTO_MS, {
+          nuoviPrezzi: [],
+          nuoviSospetti: [],
+          falliti: lotto.map((s) => s.isin),
+          errore: `nessuna risposta entro ${TIMEOUT_LOTTO_MS / 1000}s`,
+        })
+      )
+    ),
   ]);
 
   let cambio = cambioEurUsdCorrente(prezziStorico);
