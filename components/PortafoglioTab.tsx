@@ -38,7 +38,10 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
       const res = await fetch("/api/refresh", { method: "POST" });
       const d = await res.json();
       if (!res.ok) throw new Error(d.errore || "aggiornamento prezzi non riuscito.");
-      if (d.falliti?.length) setErrore(`${d.falliti.length} titoli non aggiornati: ${d.falliti.join(", ")}.`);
+      if (d.falliti?.length) {
+        const causa = d.dettaglioErrore ? ` Causa: ${d.dettaglioErrore}` : "";
+        setErrore(`${d.falliti.length} titoli non aggiornati.${causa} (${d.falliti.join(", ")})`);
+      }
       await ricarica();
     } catch (e) {
       setErrore(`Aggiornamento prezzi non riuscito: ${(e as Error).message}`);
@@ -55,7 +58,10 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
       const res = await fetch("/api/rating/tutti", { method: "POST" });
       const d = await res.json();
       if (!res.ok) throw new Error(d.errore || "aggiornamento rating non riuscito.");
-      if (d.falliti?.length) setErrore(`${d.falliti.length} titoli senza rating: ${d.falliti.join(", ")}. Riprova singolarmente dal tab Titolo.`);
+      if (d.falliti?.length) {
+        const causa = d.dettaglioErrore ? ` Causa: ${d.dettaglioErrore}` : "";
+        setErrore(`${d.falliti.length} titoli senza rating.${causa} Riprova singolarmente dal tab Titolo. (${d.falliti.join(", ")})`);
+      }
       await ricarica();
     } catch (e) {
       setErrore(`Aggiornamento rating non riuscito: ${(e as Error).message}`);

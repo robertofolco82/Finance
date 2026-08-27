@@ -22,6 +22,8 @@ export interface RisultatoRefresh {
   quarantena: number;
   falliti: string[];
   cambioEurUsd: number;
+  /** Messaggio del primo errore incontrato, se almeno un lotto è fallito — per capire la causa senza dover leggere i log. */
+  dettaglioErrore?: string;
 }
 
 interface PrezzoTrovato {
@@ -58,6 +60,7 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
   const nuoviPrezzi: PrezzoRecord[] = [];
   const nuoviSospetti: PrezzoSospetto[] = [];
   const falliti: string[] = [];
+  let primoErrore: string | null = null;
 
   const lotti: Strumento[][] = [];
   for (let i = 0; i < strumenti.length; i += LOTTO) lotti.push(strumenti.slice(i, i + LOTTO));
@@ -107,8 +110,9 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
           });
         }
       }
-    } catch {
+    } catch (e) {
       falliti.push(...lotto.map((s) => s.isin));
+      if (!primoErrore) primoErrore = e instanceof Error ? e.message : String(e);
     }
     if (li < lotti.length - 1) await attesa(700);
   }
@@ -132,7 +136,7 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
   }
 
   if (nuoviPrezzi.length === 0 && nuoviSospetti.length === 0) {
-    return { aggiornati: 0, quarantena: 0, falliti, cambioEurUsd: cambio };
+    return { aggiornati: 0, quarantena: 0, falliti, cambioEurUsd: cambio, ...(primoErrore ? { dettaglioErrore: primoErrore } : {}) };
   }
 
   await writeData("prezzi", [...prezziStorico, ...nuoviPrezzi], `refresh prezzi ${oggi}`);
@@ -147,7 +151,13 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
 
   if (nuoviPrezzi.length > 0) await registraSnapshot();
 
-  return { aggiornati: aggiornatiReali, quarantena: nuoviSospetti.length, falliti, cambioEurUsd: cambio };
+  return {
+    aggiornati: aggiornatiReali,
+    quarantena: nuoviSospetti.length,
+    falliti,
+    cambioEurUsd: cambio,
+    ...(falliti.length && primoErrore ? { dettaglioErrore: primoErrore } : {}),
+  };
 }
 
 /** Ricalcola la vista corrente e appende uno snapshot. Usato dopo un refresh o dopo l'applicazione di un prezzo in quarantena. */

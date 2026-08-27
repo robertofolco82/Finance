@@ -93,6 +93,8 @@ export async function aggiornaFondamentali(isin: string, modelloOverride?: strin
 export interface RisultatoRatingTutti {
   ok: string[];
   falliti: string[];
+  /** Messaggio del primo errore incontrato, se almeno un titolo è fallito. */
+  dettaglioErrore?: string;
 }
 
 /** Rating su tutti i titoli con sottostante noto e analizzabile (§7.1 "Aggiorna rating"). */
@@ -107,14 +109,16 @@ export async function aggiornaFondamentaliTutti(): Promise<RisultatoRatingTutti>
   const modello = await modelloCorrente();
   const ok: string[] = [];
   const falliti: string[] = [];
+  let primoErrore: string | null = null;
   for (const [i, s] of target.entries()) {
     try {
       await aggiornaFondamentali(s.isin, modello);
       ok.push(s.isin);
-    } catch {
+    } catch (e) {
       falliti.push(s.isin);
+      if (!primoErrore) primoErrore = e instanceof Error ? e.message : String(e);
     }
     if (i < target.length - 1) await attesa(700);
   }
-  return { ok, falliti };
+  return { ok, falliti, ...(falliti.length && primoErrore ? { dettaglioErrore: primoErrore } : {}) };
 }
