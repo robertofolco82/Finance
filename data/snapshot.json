@@ -144,5 +144,151 @@
         "valore_eur": 32818.5
       }
     ]
+  },
+  {
+    "ts": 1787871669938,
+    "totale_eur": 631000.6076306141,
+    "righe": [
+      {
+        "isin": "US20451W1018",
+        "prezzo": 13.53,
+        "valore_eur": 2323.7440961786174
+      },
+      {
+        "isin": "US8740391003",
+        "prezzo": 418.65,
+        "valore_eur": 4314.126234435379
+      },
+      {
+        "isin": "NL0010273215",
+        "prezzo": 1505.6,
+        "valore_eur": 6022.4
+      },
+      {
+        "isin": "IE00BFMXXD54",
+        "prezzo": 127.16,
+        "valore_eur": 34969
+      },
+      {
+        "isin": "IE00B3XXRP09",
+        "prezzo": 124.8,
+        "valore_eur": 31948.8
+      },
+      {
+        "isin": "IE00BLDGHT92",
+        "prezzo": 161.84,
+        "valore_eur": 21039.2
+      },
+      {
+        "isin": "DE000VY3NBZ6",
+        "prezzo": 2.905,
+        "valore_eur": 4964.6449999999995
+      },
+      {
+        "isin": "NLBNPIT3MRU4",
+        "prezzo": 2.905,
+        "valore_eur": 290.5
+      },
+      {
+        "isin": "NLBNPIT37C90",
+        "prezzo": 8.03,
+        "valore_eur": 1654.1799999999998
+      },
+      {
+        "isin": "NLBNPIT3MA79",
+        "prezzo": 45.2,
+        "valore_eur": 1717.6000000000001
+      },
+      {
+        "isin": "XS3388190996",
+        "prezzo": 0.9902,
+        "valore_eur": 251.5108
+      },
+      {
+        "isin": "CH1358858129",
+        "prezzo": 1003.79,
+        "valore_eur": 20075.8
+      },
+      {
+        "isin": "CH1336232371",
+        "prezzo": 998.47,
+        "valore_eur": 19969.4
+      },
+      {
+        "isin": "IT0006775073",
+        "prezzo": 1012.5,
+        "valore_eur": 20250
+      },
+      {
+        "isin": "DE000UR0A4S0",
+        "prezzo": 100.2,
+        "valore_eur": 20040
+      },
+      {
+        "isin": "IE00B579F325",
+        "prezzo": 379.4,
+        "valore_eur": 4552.799999999999
+      },
+      {
+        "isin": "LU0290358497",
+        "prezzo": 149.9881,
+        "valore_eur": 92242.6815
+      },
+      {
+        "isin": "IE00B3VWN179",
+        "prezzo": 108.06,
+        "valore_eur": 12426.9
+      },
+      {
+        "isin": "LU1287023185",
+        "prezzo": 167.71,
+        "valore_eur": 100290.58
+      },
+      {
+        "isin": "IE000UWJUW87",
+        "prezzo": 9.15,
+        "valore_eur": 25162.5
+      },
+      {
+        "isin": "IT0005436693",
+        "prezzo": 87.39,
+        "valore_eur": 26217
+      },
+      {
+        "isin": "BE0000351602",
+        "prezzo": 96.9,
+        "valore_eur": 6783
+      },
+      {
+        "isin": "AT0000A2VB47",
+        "prezzo": 94.07,
+        "valore_eur": 35746.6
+      },
+      {
+        "isin": "EU000A283859",
+        "prezzo": 88.57,
+        "valore_eur": 26570.999999999996
+      },
+      {
+        "isin": "DE0001102523",
+        "prezzo": 96.8,
+        "valore_eur": 26136
+      },
+      {
+        "isin": "FR0014007L00",
+        "prezzo": 82,
+        "valore_eur": 24600
+      },
+      {
+        "isin": "XS1503043694",
+        "prezzo": 92.12,
+        "valore_eur": 27636
+      },
+      {
+        "isin": "XS2388495942",
+        "prezzo": 99.408,
+        "valore_eur": 32804.64
+      }
+    ]
   }
 ]
