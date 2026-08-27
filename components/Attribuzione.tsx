@@ -10,6 +10,21 @@ export function Attribuzione({ righe, totale }: { righe: RigaAttribuzione[]; tot
   const [h, setH] = useState<RigaAttribuzione | null>(null);
   if (righe.length === 0 || totale === 0) return null;
 
+  // Nessuno snapshot precedente con cui confrontare (primo avvio, o subito dopo un
+  // refresh completamente fallito): ogni riga avrebbe dPct null. Un placeholder è
+  // più onesto di una barra a intensità 0 che sembra solo "rotta".
+  const nessunoStorico = righe.every((r) => r.dPct == null);
+  if (nessunoStorico) {
+    return (
+      <Card>
+        <Label>Chi ha mosso il totale</Label>
+        <div style={{ marginTop: 10, font: `400 13px/1.6 ${UI}`, color: T.mut }}>
+          Ancora nessuno storico da confrontare. Compare qui a partire dal secondo "Aggiorna prezzi".
+        </div>
+      </Card>
+    );
+  }
+
   const ord = [...righe].sort((a, b) => Math.abs(b.dEur) - Math.abs(a.dEur));
   const maxAbs = Math.max(...ord.map((r) => Math.abs(r.dEur)), 1);
 

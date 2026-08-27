@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Attribuzione } from "./Attribuzione";
 import { Btn, Card, Chip, Dato, Label, N, NA, Spark, Tag } from "./ui";
@@ -16,12 +16,21 @@ interface Props {
   ricarica: () => Promise<void>;
 }
 
+interface RisultatoImportXls {
+  riallineati: string[];
+  invariati: string[];
+  nonRiconosciuti: string[];
+  assenti: string[];
+}
+
 export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
   const [filtro, setFiltro] = useState<Filtro>("Tutti");
   const [busy, setBusy] = useState<string | null>(null);
   const [prog, setProg] = useState("");
   const [errore, setErrore] = useState<string | null>(null);
   const [manuale, setManuale] = useState<Record<string, string>>({});
+  const [risultatoImport, setRisultatoImport] = useState<RisultatoImportXls | null>(null);
+  const inputXls = useRef<HTMLInputElement | null>(null);
 
   const righeOrdinate = useMemo(() => [...vista.righe].sort((a, b) => b.valore_eur - a.valore_eur), [vista.righe]);
   const viste = filtro === "Tutti" ? righeOrdinate : righeOrdinate.filter((r) => r.strumento.macro === filtro);
@@ -126,6 +135,26 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
     }
   }
 
+  async function importaXls(file: File) {
+    setBusy("xls");
+    setErrore(null);
+    setRisultatoImport(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/portafoglio/importa-xls", { method: "POST", body: fd });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.errore);
+      setRisultatoImport(d as RisultatoImportXls);
+      await ricarica();
+    } catch (e) {
+      setErrore(`Import xls non riuscito: ${(e as Error).message}`);
+    } finally {
+      setBusy(null);
+      if (inputXls.current) inputXls.current.value = "";
+    }
+  }
+
   return (
     <div style={{ display: "grid", gap: 16 }}>
       {/* HERO */}
@@ -201,6 +230,16 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
             <Btn variant="accent" onClick={aggiornaRatingTutti} disabled={!!busy}>
               {busy === "rating" ? prog || "Rating…" : "Aggiorna rating"}
             </Btn>
+            <input
+              ref={inputXls}
+              type="file"
+              accept=".xlsx,.xls"
+              style={{ display: "none" }}
+              onChange={(e) => e.target.files?.[0] && importaXls(e.target.files[0])}
+            />
+            <Btn onClick={() => inputXls.current?.click()} disabled={!!busy} title="Carica un export con ISIN, quantità e PMC per riallineare le posizioni">
+              {busy === "xls" ? "Importo…" : "Importa xls"}
+            </Btn>
           </div>
         </div>
 
@@ -239,6 +278,37 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
       <Attribuzione righe={vista.attribuzione} totale={vista.totale_eur} />
 
       {errore && <Card style={{ borderLeft: `3px solid ${T.neg}`, background: T.negBg }}><div style={{ font: `400 13px/1.6 ${UI}`, color: T.ink }}>{errore}</div></Card>}
+
+      {risultatoImport && (
+        <Card style={{ borderLeft: `3px solid ${T.acc}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+            <Label col={T.acc}>Import xls completato</Label>
+            <button
+              onClick={() => setRisultatoImport(null)}
+              style={{ border: "none", background: "none", cursor: "pointer", color: T.faint, font: `600 10px ${UI}`, padding: 0, textDecoration: "underline" }}
+            >
+              chiudi
+            </button>
+          </div>
+          <div style={{ marginTop: 10, display: "grid", gap: 6, font: `400 13px/1.6 ${UI}`, color: T.ink }}>
+            {risultatoImport.riallineati.length > 0 && (
+              <div><strong style={{ color: T.pos }}>{risultatoImport.riallineati.length} riallineate</strong>: {risultatoImport.riallineati.join(", ")}</div>
+            )}
+            {risultatoImport.invariati.length > 0 && (
+              <div style={{ color: T.mut }}>{risultatoImport.invariati.length} invariate (già coerenti con il file)</div>
+            )}
+            {risultatoImport.nonRiconosciuti.length > 0 && (
+              <div><strong style={{ color: T.warn }}>{risultatoImport.nonRiconosciuti.length} non riconosciute</strong> — ISIN assenti dall'anagrafica, vanno aggiunte prima: {risultatoImport.nonRiconosciuti.join(", ")}</div>
+            )}
+            {risultatoImport.assenti.length > 0 && (
+              <div><strong style={{ color: T.warn }}>{risultatoImport.assenti.length} assenti dal file</strong> ma presenti in portafoglio — verifica se le hai vendute del tutto: {risultatoImport.assenti.join(", ")}</div>
+            )}
+            {risultatoImport.riallineati.length === 0 &&
+              risultatoImport.nonRiconosciuti.length === 0 &&
+              risultatoImport.assenti.length === 0 && <div style={{ color: T.mut }}>Nessuna modifica: il file coincide con lo stato attuale.</div>}
+          </div>
+        </Card>
+      )}
 
       {vista.sospetti.length > 0 && (
         <Card style={{ borderLeft: `3px solid ${T.warn}` }}>

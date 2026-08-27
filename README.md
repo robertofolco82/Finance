@@ -89,7 +89,19 @@ npm run build   # build di produzione, stesso comando che gira su Vercel
   carico calcolato (§5.3) è quindi un'approssimazione — il broker riporta +25.077,38 €
   (+4,13%), qui risulta leggermente diverso. Se recuperi date e prezzi dei singoli
   acquisti, aggiungi righe reali a `movimenti.json`: il calcolo del carico li userà
-  automaticamente (§3.1, il PMC si deriva, non si registra).
+  automaticamente (§3.1, il PMC si deriva, non si registra). Lo stesso vale per ogni
+  posizione toccata da "Importa xls" (sotto): anche lì si sostituisce con un unico
+  movimento sintetico, non con lo storico reale dei singoli acquisti/vendite — quindi
+  **non traccia realizzato/minusvalenze compensabili** nonostante il modello a
+  movimenti lo renda possibile in linea di principio (§3.1); è un'estensione futura,
+  non ancora costruita.
+- **"Importa xls"** (bottone in alto nel tab Portafoglio) riallinea quantità e PMC da
+  un file con colonne ISIN/Quantità/PMC (nomi tollerati in più varianti, es. "Qta",
+  "Prezzo di carico" — se non li riconosce te lo dice invece di indovinare). Tocca
+  solo gli ISIN già in anagrafica: quelli nuovi vanno aggiunti a mano a
+  `strumenti.json` prima (servono mercato/tipo/macro/sottostante, che l'xls non
+  contiene). Le posizioni presenti in portafoglio ma assenti dal file vengono
+  segnalate, non vendute in automatico.
 - **Piano Vercel Hobby: funzioni limitate a 60s.** Il refresh prezzi (7 lotti da 5
   titoli) di norma rientra; "Aggiorna rating" su tutti i titoli analizzabili (con
   attese di cortesia fra una chiamata e l'altra) può superarlo se i titoli
@@ -104,11 +116,12 @@ npm run build   # build di produzione, stesso comando che gira su Vercel
 - **Cadenza rating consenso:** nessun cron automatico dedicato — "Aggiorna rating"
   va premuto manualmente dalla dashboard (o schedulato aggiungendo un secondo Vercel
   Cron verso `/api/rating/tutti` se vuoi automatizzarlo settimanalmente).
-- **`npm audit` segnala 3 vulnerabilità high** in `postcss`/`sharp`, dipendenze
-  interne di Next.js 15 corrette solo in Next 16 (major, non testato qui). Non
-  riguardano funzionalità usate da questa app (niente `next/image`, nessun CSS
-  proveniente da input utente) — valuta l'aggiornamento a Next 16 quando sarà più
-  maturo, non è urgente per questo caso d'uso.
+- **`npm audit` segnala alcune vulnerabilità** in dipendenze transitive: `postcss`/
+  `sharp` (interne a Next.js 15, corrette solo in Next 16 — non riguardano
+  funzionalità usate qui, niente `next/image` né CSS da input utente) e `uuid` (via
+  `exceljs`, per "Importa xls" — usata solo per generare ID a caso con `uuid.v4()`,
+  non dal percorso vulnerabile dell'advisory che riguarda `v3/v5/v6` con un buffer
+  esplicito). Nessuna richiede azione urgente per questo caso d'uso a utente singolo.
 
 ## Costi
 
@@ -145,6 +158,7 @@ lib/
   fetch-prezzi.ts         fetcher prezzi + quarantena + snapshot
   fondamentali.ts, analisi.ts, chat.ts, call.ts, sottostante.ts
   modelli.ts, settings.ts modelli selezionabili + impostazione scelta dall'utente
+  xls.ts, importa-portafoglio.ts lettura xls + riallineamento movimenti — coperte da lib/xls.test.ts
 data/                    store versionato (strumenti, movimenti, prezzi, snapshot, ...)
 SPEC.md                 documento di consegna originale — requisiti e decisioni
 ```
