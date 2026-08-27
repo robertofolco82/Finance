@@ -78,11 +78,13 @@ export interface Snapshot {
 export interface Fondamentali {
   isin: string;
   rating?: "Strong Buy" | "Buy" | "Hold" | "Sell" | string;
+  numero_analisti?: number;
   buy?: number;
   hold?: number;
   sell?: number;
   periodo?: string;
   pt_medio?: number;
+  pt_mediano?: number;
   pt_max?: number;
   pt_min?: number;
   upside_medio?: number;
@@ -108,72 +110,6 @@ export interface RatingLogEntry {
   sell: number | null;
 }
 
-export interface CallRicevuta {
-  id: number;
-  titolo: string;
-  ticker: string;
-  direzione: "long" | "short" | "neutrale";
-  strumento: string;
-  target: string;
-  orizzonte: string;
-  data_report: string; // ISO date, t0
-  rating_autore: string;
-  benchmark_ticker: string | null;
-  rendimento: number | null;
-  rendimento_strumento: number | null;
-  benchmark: number | null;
-  benchmark_nome?: string;
-  file: string;
-}
-
-export interface ChatMessage {
-  isin: string;
-  ts: number;
-  ruolo: "user" | "assistant";
-  testo: string;
-}
-
-export interface AnalisiMetrica {
-  voce: string;
-  valore: string;
-  nota?: string;
-}
-
-export interface AnalisiInsider {
-  data: string;
-  persona: string;
-  ruolo: string;
-  tipo: string;
-  importo: string;
-}
-
-export interface AnalisiConsenso {
-  rating?: string;
-  numeroAnalisti?: string;
-  ptMedio?: string;
-  ptMediano?: string;
-  ptMin?: string;
-  ptMax?: string;
-  distribuzione?: string;
-}
-
-export interface AnalisiReport {
-  isin: string;
-  nome?: string;
-  ticker?: string;
-  mercato?: string;
-  sintesi?: string;
-  metriche?: AnalisiMetrica[];
-  consenso?: AnalisiConsenso;
-  insider?: AnalisiInsider[];
-  prossimaTrimestrale?: { data?: string; attese?: string };
-  driver?: string[];
-  rischi?: string[];
-  lacune?: string;
-  fonti?: string[];
-  ts: number;
-}
-
 export interface PrezzoSospetto {
   isin: string;
   nome: string;
@@ -185,12 +121,6 @@ export interface PrezzoSospetto {
   valuta: string;
 }
 
-/** Impostazioni utente — oggi solo la scelta del modello, vedi lib/settings.ts. */
-export interface Impostazioni {
-  /** null = usa ANTHROPIC_MODEL (Vercel) o il default nel codice. */
-  modello: string | null;
-}
-
 /** L'intero store versionato su disco/GitHub. Vedi lib/store.ts. */
 export interface DataStore {
   strumenti: Strumento[];
@@ -199,9 +129,5 @@ export interface DataStore {
   snapshot: Snapshot[];
   fondamentali: Record<string, Fondamentali>;
   rating_log: Record<string, RatingLogEntry[]>;
-  calls: CallRicevuta[];
-  chat: Record<string, ChatMessage[]>;
-  analisi: Record<string, AnalisiReport>;
   sospetti: PrezzoSospetto[]; // quarantena corrente
-  impostazioni: Impostazioni;
 }

@@ -16,11 +16,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type {
-  AnalisiReport,
-  CallRicevuta,
-  ChatMessage,
   Fondamentali,
-  Impostazioni,
   Movimento,
   PrezzoRecord,
   PrezzoSospetto,
@@ -36,11 +32,7 @@ export const DATA_FILES = {
   snapshot: "snapshot.json",
   fondamentali: "fondamentali.json",
   rating_log: "rating_log.json",
-  calls: "calls.json",
-  chat: "chat.json",
-  analisi: "analisi.json",
   sospetti: "sospetti.json",
-  impostazioni: "impostazioni.json",
 } as const;
 
 export type DataFileKey = keyof typeof DATA_FILES;
@@ -52,11 +44,7 @@ interface DataFileShape {
   snapshot: Snapshot[];
   fondamentali: Record<string, Fondamentali>;
   rating_log: Record<string, RatingLogEntry[]>;
-  calls: CallRicevuta[];
-  chat: Record<string, ChatMessage[]>;
-  analisi: Record<string, AnalisiReport>;
   sospetti: PrezzoSospetto[];
-  impostazioni: Impostazioni;
 }
 
 function backend(): "fs" | "github" {

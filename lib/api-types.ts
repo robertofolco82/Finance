@@ -5,15 +5,7 @@
  */
 
 import type { GruppoMacro, RigaPortafoglio, VistaPortafoglio } from "./portafoglio";
-import type {
-  AnalisiReport,
-  CallRicevuta,
-  ChatMessage,
-  Fondamentali,
-  PrezzoSospetto,
-  RatingLogEntry,
-  Strumento,
-} from "./types";
+import type { Fondamentali, PrezzoSospetto, RatingLogEntry, Strumento } from "./types";
 
 export interface PortafoglioResponse extends VistaPortafoglio {
   fondamentali: Record<string, Fondamentali>;
@@ -28,12 +20,6 @@ export interface TitoloResponse {
   serie: { data: string; prezzo: number }[];
   fondamentali: Fondamentali | null;
   ratingLog: RatingLogEntry[];
-  analisi: AnalisiReport | null;
-  chat: ChatMessage[];
-}
-
-export interface CallsResponse {
-  calls: CallRicevuta[];
 }
 
 export interface ErroreResponse {

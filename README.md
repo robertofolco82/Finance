@@ -24,15 +24,15 @@ Next.js API routes  ──►  frontend React (nessuna chiave lato client)
 
 Decisioni chiave (motivate in `SPEC.md` §2, §6, §13):
 
+- **Costo zero.** Nessun servizio a pagamento: prezzi da Yahoo Finance e Borsa
+  Italiana, cambio dalla BCE, consenso analisti da stockanalysis.com. Non serve
+  nessuna chiave API se non il token GitHub per lo store dati.
 - **Vercel** invece di verificare cosa supporta l'hosting personale: gratuito, deploy
-  diretto da questo repo, funzioni serverless per l'API. La chiave
-  Anthropic vive solo nelle env var del progetto Vercel, e serve soltanto alle
-  funzioni a richiesta (rating, analisi, chat) — non ai prezzi.
-- **Prezzi da fonti gratuite, non da LLM.** La ricerca web via Claude impiegava oltre
-  35 secondi per 5 titoli e costava a ogni giro; le fonti dirette rispondono in
-  frazioni di secondo, gratis, e non possono "leggere male" un numero — l'errore da
-  24× che aveva falsato il prototipo nasceva proprio lì. Copertura verificata sui 28
-  ISIN reali: **Yahoo Finance 11** (azioni ed ETF, con chiusura precedente), **Borsa
+  diretto da questo repo, funzioni serverless per l'API.
+- **Fonti dirette, non ricerca via LLM.** La ricerca web impiegava oltre 35 secondi
+  per 5 titoli e costava a ogni giro; le fonti dirette rispondono in frazioni di
+  secondo, gratis, e non possono "leggere male" un numero — l'errore da 24× che aveva
+  falsato il prototipo nasceva proprio lì. Copertura verificata sui 28 ISIN reali: **Yahoo Finance 11** (azioni ed ETF, con chiusura precedente), **Borsa
   Italiana 12** (titoli di Stato su MOT, certificati su SeDeX), **BCE** per il cambio
   EUR/USD. I **5 rimanenti** — i 4 strutturati EuroTLX e l'ETP SK Hynix — non sono
   quotati da nessuna fonte gratuita e hanno un campo di inserimento manuale nella
@@ -48,40 +48,35 @@ Decisioni chiave (motivate in `SPEC.md` §2, §6, §13):
 
 ### 1. Variabili d'ambiente
 
-Copia `.env.example` e compila:
+Serve **solo** l'accesso allo store dati. Nessuna chiave a pagamento.
 
 | Variabile | Cosa serve |
 |---|---|
-| `ANTHROPIC_API_KEY` | Serve **solo** alle funzioni a richiesta: rating analisti, analisi, chat, sottostanti, lettura PDF delle call. I prezzi non la usano più. Server-side only. |
-| `ANTHROPIC_MODEL` | Scelta di partenza (default nel codice `claude-opus-5` se lasci vuoto). Una volta impostato un modello dal menù a tendina in dashboard, quella scelta ha sempre la priorità — vedi [Costi](#costi). |
-| `GITHUB_TOKEN` | Fine-grained personal access token con **Contents: Read and write** solo su questo repo (Settings → Developer settings → Fine-grained tokens). Usato dalle funzioni Vercel per leggere/scrivere `data/*.json`. |
+| `GITHUB_TOKEN` | Fine-grained personal access token con **Contents: Read and write** solo su questo repo (Settings → Developer settings → Fine-grained tokens). Le funzioni Vercel lo usano per leggere/scrivere `data/*.json`. |
 | `GITHUB_REPO` | `robertofolco82/finance` |
-| `GITHUB_BRANCH` | Il branch che Vercel sta effettivamente servendo (le scritture vanno lì). |
+| `GITHUB_BRANCH` | Il branch che Vercel sta servendo (le scritture vanno lì). |
 
 ### 2. Deploy su Vercel
 
 1. Importa questo repository su [vercel.com/new](https://vercel.com/new).
-2. Imposta le variabili d'ambiente sopra nel progetto Vercel (Production **e** Preview
-   se vuoi testare da branch diversi).
-3. Deploy.
-4. Apri l'URL `*.vercel.app` da iPhone Safari (dispositivo primario, §1.1) o punta
-   un tuo dominio.
+2. Imposta le tre variabili sopra.
+3. Deploy, poi apri l'URL `*.vercel.app` da iPhone Safari (dispositivo primario, §1.1).
 
 ### 3. Sviluppo locale
 
 ```bash
 npm install
-cp .env.example .env.local   # compila almeno ANTHROPIC_API_KEY
-npm run dev
+npm run dev     # in locale lo store usa direttamente data/*.json
+npm test        # 24 test su calcoli, parser xls, consenso, timeout
+npm run build   # stesso comando che gira su Vercel
 ```
 
-In locale `DATA_BACKEND` non serve impostarla: senza la variabile `VERCEL` (assente
-in sviluppo) lo store usa direttamente il filesystem (`data/*.json`), quindi le
-modifiche restano locali finché non le committi tu.
+Gli script in `scripts/` riverificano la copertura delle fonti sui 28 ISIN reali:
 
 ```bash
-npm test        # vitest sulle formule di calcolo (lib/calc.test.ts)
-npm run build   # build di produzione, stesso comando che gira su Vercel
+node scripts/verifica-yahoo.mjs           # azioni ed ETF
+node scripts/verifica-borsaitaliana.mjs   # titoli di Stato e certificati
+node scripts/verifica-stockanalysis.mjs   # consenso analisti
 ```
 
 ## Limiti noti
@@ -134,24 +129,19 @@ npm run build   # build di produzione, stesso comando che gira su Vercel
   non dal percorso vulnerabile dell'advisory che riguarda `v3/v5/v6` con un buffer
   esplicito). Nessuna richiede azione urgente per questo caso d'uso a utente singolo.
 
-## Costi
+## Funzioni rimosse
 
-Il fetcher gira una volta al giorno nei feriali (28 ISIN, 7 chiamate a lotti + 1 per
-il cambio) più le chiamate on-demand da UI (rating, analisi, chat).
+Il prototipo prevedeva anche **analisi completa per ISIN**, **chat sul titolo** ed
+**estrazione delle call da PDF** (§8, §9 della spec). Erano le uniche funzioni che
+richiedevano un modello linguistico a pagamento e sono state rimosse su richiesta,
+insieme al selettore del modello e allo scheduler: la dashboard oggi non ha alcun
+percorso che possa generare una spesa. Il track record delle call (§9) resta quindi
+non implementato — reintrodurlo richiederebbe o una chiave a pagamento o un form di
+inserimento manuale.
 
-Il modello si sceglie in due punti, con priorità a quello più vicino all'utente:
-
-1. **Menù a tendina in dashboard** (in alto, accanto all'orario dell'ultimo
-   aggiornamento) — salva la scelta in `data/impostazioni.json`, quindi vale per
-   tutti i dispositivi da cui apri il sito, non solo quello su cui l'hai cambiata.
-   Cambia effetto dalla chiamata successiva, senza bisogno di "Redeploy" su Vercel.
-2. **`ANTHROPIC_MODEL` su Vercel** — usata solo finché dal menù non è stato scelto
-   nulla ("Predefinito"). Utile come scelta di partenza per un deploy nuovo.
-
-Il codice offre tre livelli (vedi `lib/modelli.ts` per l'elenco esatto): il più
-capace (`claude-opus-5`), un buon compromesso qualità/costo (`claude-sonnet-5`,
-quello impostato di default in `.env.example`), e il più economico
-(`claude-haiku-4-5-20251001`) per chi vuole spendere il minimo indispensabile.
+La ripartizione **buy/hold/sell** della ciambella (§7.2) non è disponibile dalla fonte
+gratuita, che espone solo il giudizio sintetico e il numero di analisti: si mostra
+quello, senza inventare i conteggi.
 
 ## Struttura del progetto
 
@@ -167,9 +157,10 @@ lib/
   portafoglio.ts          vista derivata (posizioni + P&L + attribuzione)
   anthropic.ts            client Claude con retry/backoff (§11)
   fetch-prezzi.ts         fetcher prezzi + quarantena + snapshot
-  fondamentali.ts, analisi.ts, chat.ts, call.ts, sottostante.ts
-  modelli.ts, settings.ts modelli selezionabili + impostazione scelta dall'utente
-  xls.ts, importa-portafoglio.ts lettura xls + riallineamento movimenti — coperte da lib/xls.test.ts
+  prezzi-fonti.ts         Yahoo / Borsa Italiana / BCE — le fonti dei prezzi
+  consenso.ts             consenso analisti da stockanalysis.com — lib/consenso.test.ts
+  fondamentali.ts         orchestrazione rating + storico rilevazioni
+  xls.ts, importa-portafoglio.ts lettura xls + riallineamento movimenti — lib/xls.test.ts
 data/                    store versionato (strumenti, movimenti, prezzi, snapshot, ...)
 SPEC.md                 documento di consegna originale — requisiti e decisioni
 ```

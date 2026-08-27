@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AnalisiTab } from "@/components/AnalisiTab";
 import { PortafoglioTab } from "@/components/PortafoglioTab";
-import { SelettoreModello } from "@/components/SelettoreModello";
 import { TitoloTab } from "@/components/TitoloTab";
 import { ErroreCard, Spinner } from "@/components/ui";
 import { MONO, T, UI } from "@/lib/theme";
@@ -12,7 +10,6 @@ import type { PortafoglioResponse } from "@/lib/api-types";
 const TABS = [
   ["portafoglio", "Portafoglio"],
   ["titolo", "Titolo"],
-  ["analisi", "Analisi"],
 ] as const;
 type TabKey = (typeof TABS)[number][0];
 
@@ -64,7 +61,6 @@ export default function Page() {
               Portafoglio<span style={{ color: T.acc }}>.</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <SelettoreModello />
               <div style={{ font: `500 10px ${MONO}`, color: T.faint }}>
                 {ultimoTs ? new Date(ultimoTs).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}
               </div>
@@ -106,7 +102,6 @@ export default function Page() {
           />
         )}
         {vista && tab === "titolo" && sel && <TitoloTab isin={sel} elenco={elenco} onSeleziona={setSel} />}
-        {tab === "analisi" && <AnalisiTab />}
       </main>
     </div>
   );

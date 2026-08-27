@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ChatTitolo } from "./ChatTitolo";
-import { Report } from "./Report";
-import { BarreTarget, Ciambella } from "./Rating";
+import { BarreTarget, ConsensoAnalisti } from "./Rating";
 import { Btn, Card, ErroreCard, Label, N, Spinner, Tag } from "./ui";
 import { CLASSE_COL, MONO, OMBRA, T, UI } from "@/lib/theme";
 import type { TitoloResponse } from "@/lib/api-types";
@@ -18,9 +16,8 @@ interface Props {
 export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
   const [dati, setDati] = useState<TitoloResponse | null>(null);
   const [caricamento, setCaricamento] = useState(true);
-  const [busy, setBusy] = useState<"rating" | "analisi" | "map" | null>(null);
+  const [busy, setBusy] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
-  const [manuale, setManuale] = useState("");
 
   const carica = useCallback(async () => {
     setCaricamento(true);
@@ -41,41 +38,8 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
     carica();
   }, [carica]);
 
-  async function trovaSottostante() {
-    setBusy("map");
-    setErrore(null);
-    try {
-      const res = await fetch(`/api/sottostante/${isin}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.errore);
-      if (!d.sotto) setErrore(d.messaggio);
-      await carica();
-    } catch (e) {
-      setErrore((e as Error).message);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function salvaManuale() {
-    const v = manuale.trim();
-    if (!v) return;
-    try {
-      const res = await fetch(`/api/sottostante/${isin}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ manuale: v }),
-      });
-      if (!res.ok) throw new Error((await res.json()).errore);
-      setManuale("");
-      await carica();
-    } catch (e) {
-      setErrore((e as Error).message);
-    }
-  }
-
   async function aggiornaRating() {
-    setBusy("rating");
+    setBusy(true);
     setErrore(null);
     try {
       const res = await fetch(`/api/rating/${isin}`, { method: "POST" });
@@ -83,24 +47,9 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
       if (!res.ok) throw new Error(d.errore);
       await carica();
     } catch (e) {
-      setErrore((e as Error).message);
+      setErrore(`Rating non recuperato: ${(e as Error).message}`);
     } finally {
-      setBusy(null);
-    }
-  }
-
-  async function generaAnalisi() {
-    setBusy("analisi");
-    setErrore(null);
-    try {
-      const res = await fetch(`/api/analisi/${isin}`, { method: "POST" });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.errore);
-      await carica();
-    } catch (e) {
-      setErrore((e as Error).message);
-    } finally {
-      setBusy(null);
+      setBusy(false);
     }
   }
 
@@ -124,7 +73,17 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
         <select
           value={isin}
           onChange={(e) => onSeleziona(e.target.value)}
-          style={{ width: "100%", marginTop: 10, padding: "13px 14px", borderRadius: 10, border: `1px solid ${T.line}`, font: `600 14px ${UI}`, background: T.surf, color: T.ink, cursor: "pointer" }}
+          style={{
+            width: "100%",
+            marginTop: 10,
+            padding: "13px 14px",
+            borderRadius: 10,
+            border: `1px solid ${T.line}`,
+            font: `600 14px ${UI}`,
+            background: T.surf,
+            color: T.ink,
+            cursor: "pointer",
+          }}
         >
           {elenco.map((x) => (
             <option key={x.isin} value={x.isin}>
@@ -142,55 +101,29 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
                 {s.mercato} · {s.valuta}
               </span>
             </div>
-            <div style={{ marginTop: 10, font: `400 13px ${UI}`, color: T.mut }}>
-              {sotto ? (
-                <>
-                  Sottostante: <strong style={{ color: T.ink }}>{sotto}</strong>
-                </>
-              ) : (
-                <span style={{ display: "inline-flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-                  Sottostante non ancora identificato
-                  <Btn size="s" variant="accent" onClick={trovaSottostante} disabled={!!busy}>
-                    {busy === "map" ? "Cerco…" : "Trova"}
-                  </Btn>
-                  <input
-                    value={manuale}
-                    onChange={(e) => setManuale(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") salvaManuale();
-                    }}
-                    placeholder="…o scrivilo tu"
-                    style={{ padding: "7px 10px", borderRadius: 8, border: `1px solid ${T.line}`, font: `500 11px ${UI}`, width: 160 }}
-                  />
-                </span>
-              )}
-            </div>
+            {sotto && (
+              <div style={{ marginTop: 10, font: `400 13px ${UI}`, color: T.mut }}>
+                Sottostante: <strong style={{ color: T.ink }}>{sotto}</strong>
+              </div>
+            )}
             {s.nota && (
               <div style={{ marginTop: 10, padding: "10px 12px", background: T.surf2, borderRadius: 9, font: `400 12px/1.6 ${UI}`, color: T.mut, maxWidth: 520 }}>
                 {s.nota}
               </div>
             )}
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Btn variant="accent" onClick={aggiornaRating} disabled={!!busy || !puoFond} title={!puoFond ? naMotivo || "Serve prima identificare il sottostante" : ""}>
-              {busy === "rating" ? "Cerco rating…" : "Rating e utili"}
-            </Btn>
-            <Btn variant="primary" onClick={generaAnalisi} disabled={!!busy}>
-              {busy === "analisi" ? "Analisi in corso…" : "Analisi completa"}
-            </Btn>
-          </div>
+          <Btn variant="accent" onClick={aggiornaRating} disabled={busy || !puoFond} title={!puoFond ? naMotivo || "" : ""}>
+            {busy ? "Cerco…" : "Aggiorna rating"}
+          </Btn>
         </div>
         {!puoFond && naMotivo && (
           <div style={{ marginTop: 14, padding: "10px 12px", background: T.surf2, borderRadius: 9, font: `400 12px ${UI}`, color: T.mut }}>
-            Rating e utili non disponibili per questo strumento: {naMotivo}
+            Rating non disponibile per questo strumento: {naMotivo}
           </div>
         )}
       </Card>
 
       {errore && <ErroreCard messaggio={errore} />}
-      {(busy === "rating" || busy === "analisi") && (
-        <Spinner testo={busy === "analisi" ? "Sto cercando fondamentali, consenso, insider e calendario. Richiede un minuto." : "Cerco il consenso degli analisti…"} />
-      )}
 
       {serie.length >= 2 && (
         <Card>
@@ -211,17 +144,26 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
 
       {puoFond && f?.rating && (
         <Card pad={22}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(270px,1fr))", gap: 28 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 28 }}>
             <div>
-              <Label>Rating analisti{f.periodo ? ` — ${f.periodo}` : ""}</Label>
+              <Label>Consenso analisti — riportato, non raccomandato</Label>
               <div style={{ marginTop: 14 }}>
-                <Ciambella buy={f.buy} hold={f.hold} sell={f.sell} rating={f.rating} />
+                <ConsensoAnalisti rating={f.rating} analisti={f.numero_analisti} />
               </div>
             </div>
             <div>
               <Label>Previsione a 12 mesi</Label>
               <div style={{ marginTop: 14 }}>
-                <BarreTarget ptMax={f.pt_max} ptMedio={f.pt_medio} ptMin={f.pt_min} upMax={f.upside_max} upMedio={f.upside_medio} upMin={f.upside_min} valuta={f.valuta} />
+                <BarreTarget
+                  ptMin={f.pt_min}
+                  ptMedio={f.pt_medio}
+                  ptMediano={f.pt_mediano}
+                  ptMax={f.pt_max}
+                  upMin={f.upside_min}
+                  upMedio={f.upside_medio}
+                  upMax={f.upside_max}
+                  valuta={f.valuta}
+                />
               </div>
             </div>
           </div>
@@ -245,45 +187,6 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
           )}
         </Card>
       )}
-
-      {puoFond && f?.prossimi_utili && (
-        <Card>
-          <Label>Trimestrale e attese</Label>
-          <div style={{ marginTop: 12, font: `400 14px/1.8 ${UI}`, color: T.ink }}>
-            Prossima pubblicazione: <N s={14} w={700}>{f.prossimi_utili}</N>
-            {f.attese && (
-              <>
-                <br />
-                Attese di consenso: {f.attese}
-              </>
-            )}
-            {f.guidance && (
-              <>
-                <br />
-                Guidance: {f.guidance}
-              </>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {dati.analisi && (
-        <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "0 4px" }}>
-            <span style={{ font: `400 11px ${UI}`, color: T.faint }}>
-              Analisi salvata
-              {dati.analisi.ts ? ` il ${new Date(dati.analisi.ts).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : ""} — resta
-              qui finché non la rigeneri
-            </span>
-            <Btn size="s" onClick={generaAnalisi} disabled={!!busy}>
-              Rigenera
-            </Btn>
-          </div>
-          <Report r={dati.analisi} />
-        </>
-      )}
-
-      <ChatTitolo isin={isin} nomeSottostante={sotto || s.nome} messaggiIniziali={dati.chat} />
     </div>
   );
 }

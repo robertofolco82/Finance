@@ -1,110 +1,107 @@
 "use client";
 
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { N } from "./ui";
 import { MONO, T, UI } from "@/lib/theme";
 
-/** Rating analisti in stile Google Finance (§7.2): ciambella Buy/Hold/Sell + barre PT. */
-export function Ciambella({
-  buy,
-  hold,
-  sell,
-  rating,
-}: {
-  buy?: number | null;
-  hold?: number | null;
-  sell?: number | null;
-  rating?: string | null;
-}) {
-  const tot = (buy || 0) + (hold || 0) + (sell || 0);
-  if (!tot) return null;
-  const d = [
-    { n: "Buy", v: buy || 0, c: T.pos },
-    { n: "Hold", v: hold || 0, c: T.warn },
-    { n: "Sell", v: sell || 0, c: T.neg },
-  ];
-  const s = (rating || "").toLowerCase();
-  const et = s.includes("strong buy")
-    ? "Acquisto forte"
-    : s.includes("buy")
-      ? "Acquisto"
-      : s.includes("sell")
-        ? "Vendita"
-        : s.includes("hold")
-          ? "Mantieni"
-          : rating;
+const ETICHETTA: Record<string, string> = {
+  "strong buy": "Acquisto forte",
+  buy: "Acquisto",
+  hold: "Mantieni",
+  sell: "Vendita",
+  "strong sell": "Vendita forte",
+};
+
+function coloreRating(rating: string): string {
+  const s = rating.toLowerCase();
+  if (s.includes("buy")) return T.pos;
+  if (s.includes("sell")) return T.neg;
+  return T.warn;
+}
+
+/**
+ * Consenso analisti — §7.2. La fonte gratuita espone il giudizio sintetico e il
+ * numero di analisti, non la ripartizione buy/hold/sell: la ciambella del
+ * prototipo non è replicabile senza inventare i conteggi, quindi si mostra il
+ * dato che esiste davvero e nient'altro.
+ */
+export function ConsensoAnalisti({ rating, analisti }: { rating?: string | null; analisti?: number | null }) {
+  if (!rating) return null;
+  const col = coloreRating(rating);
+  const etichetta = ETICHETTA[rating.toLowerCase()] ?? rating;
   return (
-    <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
-      <div style={{ width: 132, height: 132, position: "relative" }}>
-        <ResponsiveContainer>
-          <PieChart>
-            <Pie data={d} dataKey="v" innerRadius={44} outerRadius={64} startAngle={90} endAngle={-270} stroke="none" isAnimationActive={false}>
-              {d.map((x, i) => (
-                <Cell key={i} fill={x.c} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
-        <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none" }}>
-          <div style={{ textAlign: "center" }}>
-            <N s={22} w={700}>{tot}</N>
-            <div style={{ font: `600 8px ${UI}`, letterSpacing: ".1em", textTransform: "uppercase", color: T.faint }}>analisti</div>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div style={{ font: `700 16px ${UI}`, color: T.ink, marginBottom: 10 }}>{et}</div>
-        <div style={{ display: "grid", gap: 6 }}>
-          {d.map((x) => (
-            <div key={x.n} style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <span style={{ width: 9, height: 9, borderRadius: 3, background: x.c }} />
-              <span style={{ font: `500 12px ${UI}`, color: T.mut, width: 38 }}>{x.n}</span>
-              <N s={12} w={700}>{x.v}</N>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+      <span
+        style={{
+          font: `700 15px ${UI}`,
+          color: col,
+          background: `${col}14`,
+          border: `1px solid ${col}33`,
+          padding: "10px 14px",
+          borderRadius: 10,
+        }}
+      >
+        {etichetta}
+      </span>
+      {analisti != null && (
+        <span style={{ font: `400 12px ${UI}`, color: T.mut }}>
+          su <N s={13} w={700}>{analisti}</N> analisti
+        </span>
+      )}
     </div>
   );
 }
 
+interface RigaTarget {
+  etichetta: string;
+  prezzo?: number | null;
+  upside?: number | null;
+  evidenzia?: boolean;
+}
+
+const SIMBOLO: Record<string, string> = { USD: "$", EUR: "€", GBP: "£", KRW: "₩" };
+
+/** Barre orizzontali dei price target, larghezza proporzionale al valore (§7.2). */
 export function BarreTarget({
-  ptMax,
-  ptMedio,
   ptMin,
-  upMax,
-  upMedio,
+  ptMedio,
+  ptMediano,
+  ptMax,
   upMin,
+  upMedio,
+  upMax,
   valuta,
 }: {
-  ptMax?: number | null;
-  ptMedio?: number | null;
   ptMin?: number | null;
-  upMax?: number | null;
-  upMedio?: number | null;
+  ptMedio?: number | null;
+  ptMediano?: number | null;
+  ptMax?: number | null;
   upMin?: number | null;
+  upMedio?: number | null;
+  upMax?: number | null;
   valuta?: string | null;
 }) {
-  if (ptMax == null && ptMedio == null && ptMin == null) return null;
-  const vs = valuta === "USD" ? "$" : "€";
-  const max = Math.max(ptMax || 0, ptMedio || 0, ptMin || 0) || 1;
-  const righe: [string, number | null | undefined, number | null | undefined][] = [
-    ["Massimo", ptMax, upMax],
-    ["Medio", ptMedio, upMedio],
-    ["Minimo", ptMin, upMin],
-  ];
-  const filtrate = righe.filter(([, v]) => v != null);
+  const righe: RigaTarget[] = [
+    { etichetta: "Massimo", prezzo: ptMax, upside: upMax },
+    { etichetta: "Medio", prezzo: ptMedio, upside: upMedio, evidenzia: true },
+    { etichetta: "Mediano", prezzo: ptMediano },
+    { etichetta: "Minimo", prezzo: ptMin, upside: upMin },
+  ].filter((r) => r.prezzo != null);
+  if (righe.length === 0) return null;
+
+  const vs = SIMBOLO[valuta ?? ""] ?? "";
+  const max = Math.max(...righe.map((r) => r.prezzo as number)) || 1;
+
   return (
-    <div style={{ display: "grid", gap: 12 }}>
-      {filtrate.map(([l, v, u]) => (
-        <div key={l}>
-          <div style={{ font: `500 11px ${UI}`, color: T.mut, marginBottom: 5 }}>{l}</div>
-          <div style={{ height: 32, background: T.surf2, borderRadius: 8, overflow: "hidden" }}>
+    <div style={{ display: "grid", gap: 10 }}>
+      {righe.map((r) => (
+        <div key={r.etichetta}>
+          <div style={{ font: `500 11px ${UI}`, color: T.mut, marginBottom: 4 }}>{r.etichetta}</div>
+          <div style={{ height: 30, background: T.surf2, borderRadius: 8, overflow: "hidden" }}>
             <div
               style={{
-                width: `${Math.max(18, ((v as number) / max) * 100)}%`,
+                width: `${Math.max(22, ((r.prezzo as number) / max) * 100)}%`,
                 height: "100%",
-                background: T.acc,
+                background: r.evidenzia ? T.acc : `${T.acc}99`,
                 borderRadius: 8,
                 display: "flex",
                 alignItems: "center",
@@ -114,8 +111,8 @@ export function BarreTarget({
             >
               <span style={{ font: `600 12px ${MONO}`, color: "#fff", whiteSpace: "nowrap" }}>
                 {vs}
-                {Number(v).toFixed(2)}
-                {u != null ? ` (${u >= 0 ? "+" : ""}${Number(u).toFixed(1)}%)` : ""}
+                {Number(r.prezzo).toLocaleString("it-IT", { maximumFractionDigits: 2 })}
+                {r.upside != null ? ` (${r.upside >= 0 ? "+" : ""}${r.upside.toFixed(1)}%)` : ""}
               </span>
             </div>
           </div>
