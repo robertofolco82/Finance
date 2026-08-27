@@ -2,13 +2,16 @@
  * Fetcher prezzi — §2.1 e §11. Gira server-side (cron o trigger manuale), mai nel browser.
  *
  * Correzioni rispetto al prototipo:
- *  - batch da 5 titoli, non 28 in sequenza
+ *  - batch da 5 titoli in PARALLELO, non 28 in sequenza — con la ricerca web reale
+ *    ogni lotto può richiedere diversi secondi: in sequenza la somma di 7 lotti
+ *    supera facilmente il limite di 60s delle funzioni Vercel (piano Hobby),
+ *    che le termina restituendo una pagina d'errore invece della risposta JSON
  *  - chiusura precedente salvata insieme al prezzo (§5.2)
  *  - quarantena confrontata con l'ultimo prezzo SCARICATO, non con l'export (§5.7)
  *  - un lotto fallito non blocca gli altri: isin falliti riportati, non un errore fatale
  */
 
-import { attesa, chiedi, estraiJSON } from "./anthropic";
+import { chiedi, estraiJSON } from "./anthropic";
 import { modelloCorrente } from "./settings";
 import { readData, ultimoPrezzo, cambioEurUsdCorrente, writeData } from "./store";
 import { costruisciVista } from "./portafoglio";
@@ -34,13 +37,14 @@ interface PrezzoTrovato {
   data?: string;
 }
 
-export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
-  const strumenti = await readData("strumenti");
-  const prezziStorico = await readData("prezzi");
-  const modello = await modelloCorrente();
+interface RisultatoLotto {
+  nuoviPrezzi: PrezzoRecord[];
+  nuoviSospetti: PrezzoSospetto[];
+  falliti: string[];
+  errore?: string;
+}
 
-  let cambio = cambioEurUsdCorrente(prezziStorico);
-  let cambioAggiornato = false;
+async function recuperaCambio(modello: string): Promise<number | null> {
   try {
     const testo = await chiedi(
       `Qual è il tasso di cambio EUR/USD più recente (quanti USD per 1 EUR)? ` +
@@ -48,73 +52,100 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
       { maxTokens: 300, effort: "low", model: modello }
     );
     const d = estraiJSON<{ cambio: number }>(testo);
-    if (d.cambio && d.cambio > 0) {
-      cambio = d.cambio;
-      cambioAggiornato = true;
-    }
+    return d.cambio && d.cambio > 0 ? d.cambio : null;
   } catch {
-    // mantiene l'ultimo cambio noto: non è fatale, il fetcher prosegue sui prezzi
+    return null; // mantiene l'ultimo cambio noto: non è fatale, il fetcher prosegue sui prezzi
   }
+}
 
-  const oggi = new Date().toISOString().slice(0, 10);
+async function elaboraLotto(
+  lotto: Strumento[],
+  modello: string,
+  oggi: string,
+  prezziStorico: PrezzoRecord[]
+): Promise<RisultatoLotto> {
   const nuoviPrezzi: PrezzoRecord[] = [];
   const nuoviSospetti: PrezzoSospetto[] = [];
-  const falliti: string[] = [];
-  let primoErrore: string | null = null;
+  try {
+    const testo = await chiedi(
+      `Per ciascuno di questi strumenti cerca la quotazione più recente E la chiusura della seduta precedente.\n` +
+        lotto.map((s) => `${s.isin} — ${s.nome} (${s.mercato}, ${s.valuta})`).join("\n") +
+        `\n\nAttenzione: le obbligazioni quotano in percentuale del nominale (circa 80-105), non in euro.\n` +
+        `"chiusura_precedente" è la chiusura della seduta precedente a quella dell'ultimo prezzo trovato.\n` +
+        `Rispondi SOLO con JSON: {"prezzi":[{"isin":"","prezzo":numero,"chiusura_precedente":numero,"fonte":"","data":"AAAA-MM-GG"}]}\n` +
+        `prezzo o chiusura_precedente null se non li trovi con certezza. Non inventare.`,
+      { maxTokens: 1800, effort: "low", model: modello }
+    );
+    const d = estraiJSON<{ prezzi: PrezzoTrovato[] }>(testo);
+    for (const q of d.prezzi || []) {
+      if (q.prezzo == null) continue;
+      const strumento = lotto.find((s) => s.isin === q.isin);
+      if (!strumento) continue;
+      const ultimo = ultimoPrezzo(prezziStorico, q.isin);
+      const riferimento = ultimo?.chiusura;
+      const variazione = riferimento ? ((q.prezzo - riferimento) / riferimento) * 100 : 0;
+      const fonte = `${q.fonte || ""} ${q.data || ""}`.trim();
+      if (riferimento != null && Math.abs(variazione / 100) > SOGLIA_QUARANTENA) {
+        nuoviSospetti.push({
+          isin: q.isin,
+          nome: strumento.nome,
+          vecchio: riferimento,
+          nuovo: q.prezzo,
+          variazione,
+          chiusura_precedente: q.chiusura_precedente ?? null,
+          fonte,
+          valuta: strumento.valuta,
+        });
+      } else {
+        nuoviPrezzi.push({
+          isin: q.isin,
+          data: oggi,
+          chiusura: q.prezzo,
+          chiusura_precedente: q.chiusura_precedente ?? ultimo?.chiusura_precedente ?? null,
+          valuta: strumento.valuta,
+          fonte,
+          raccolto_il: new Date().toISOString(),
+        });
+      }
+    }
+    return { nuoviPrezzi, nuoviSospetti, falliti: [] };
+  } catch (e) {
+    return { nuoviPrezzi: [], nuoviSospetti: [], falliti: lotto.map((s) => s.isin), errore: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
+  const strumenti = await readData("strumenti");
+  const prezziStorico = await readData("prezzi");
+  const modello = await modelloCorrente();
+  const oggi = new Date().toISOString().slice(0, 10);
 
   const lotti: Strumento[][] = [];
   for (let i = 0; i < strumenti.length; i += LOTTO) lotti.push(strumenti.slice(i, i + LOTTO));
 
-  for (let li = 0; li < lotti.length; li++) {
-    const lotto = lotti[li];
-    if (!lotto) continue;
-    try {
-      const testo = await chiedi(
-        `Per ciascuno di questi strumenti cerca la quotazione più recente E la chiusura della seduta precedente.\n` +
-          lotto.map((s) => `${s.isin} — ${s.nome} (${s.mercato}, ${s.valuta})`).join("\n") +
-          `\n\nAttenzione: le obbligazioni quotano in percentuale del nominale (circa 80-105), non in euro.\n` +
-          `"chiusura_precedente" è la chiusura della seduta precedente a quella dell'ultimo prezzo trovato.\n` +
-          `Rispondi SOLO con JSON: {"prezzi":[{"isin":"","prezzo":numero,"chiusura_precedente":numero,"fonte":"","data":"AAAA-MM-GG"}]}\n` +
-          `prezzo o chiusura_precedente null se non li trovi con certezza. Non inventare.`,
-        { maxTokens: 1800, effort: "low", model: modello }
-      );
-      const d = estraiJSON<{ prezzi: PrezzoTrovato[] }>(testo);
-      for (const q of d.prezzi || []) {
-        if (q.prezzo == null) continue;
-        const strumento = lotto.find((s) => s.isin === q.isin);
-        if (!strumento) continue;
-        const ultimo = ultimoPrezzo(prezziStorico, q.isin);
-        const riferimento = ultimo?.chiusura;
-        const variazione = riferimento ? ((q.prezzo - riferimento) / riferimento) * 100 : 0;
-        const fonte = `${q.fonte || ""} ${q.data || ""}`.trim();
-        if (riferimento != null && Math.abs(variazione / 100) > SOGLIA_QUARANTENA) {
-          nuoviSospetti.push({
-            isin: q.isin,
-            nome: strumento.nome,
-            vecchio: riferimento,
-            nuovo: q.prezzo,
-            variazione,
-            chiusura_precedente: q.chiusura_precedente ?? null,
-            fonte,
-            valuta: strumento.valuta,
-          });
-        } else {
-          nuoviPrezzi.push({
-            isin: q.isin,
-            data: oggi,
-            chiusura: q.prezzo,
-            chiusura_precedente: q.chiusura_precedente ?? ultimo?.chiusura_precedente ?? null,
-            valuta: strumento.valuta,
-            fonte,
-            raccolto_il: new Date().toISOString(),
-          });
-        }
-      }
-    } catch (e) {
-      falliti.push(...lotto.map((s) => s.isin));
-      if (!primoErrore) primoErrore = e instanceof Error ? e.message : String(e);
-    }
-    if (li < lotti.length - 1) await attesa(700);
+  // Tutte le chiamate insieme, non una dopo l'altra: con la ricerca web reale ogni
+  // lotto richiede diversi secondi, e in sequenza 7 lotti superano facilmente il
+  // limite di 60s delle funzioni Vercel. In parallelo il tempo totale è quello del
+  // lotto più lento, non la somma di tutti — il retry con backoff dentro chiedi()
+  // resta la difesa contro eventuali 429 dovuti alla concorrenza.
+  const [cambioTrovato, risultatiLotti] = await Promise.all([
+    recuperaCambio(modello),
+    Promise.all(lotti.map((lotto) => elaboraLotto(lotto, modello, oggi, prezziStorico))),
+  ]);
+
+  let cambio = cambioEurUsdCorrente(prezziStorico);
+  const cambioAggiornato = cambioTrovato != null;
+  if (cambioAggiornato) cambio = cambioTrovato;
+
+  const nuoviPrezzi: PrezzoRecord[] = [];
+  const nuoviSospetti: PrezzoSospetto[] = [];
+  const falliti: string[] = [];
+  let primoErrore: string | null = null;
+  for (const r of risultatiLotti) {
+    nuoviPrezzi.push(...r.nuoviPrezzi);
+    nuoviSospetti.push(...r.nuoviSospetti);
+    falliti.push(...r.falliti);
+    if (r.errore && !primoErrore) primoErrore = r.errore;
   }
 
   const aggiornatiReali = nuoviPrezzi.length;

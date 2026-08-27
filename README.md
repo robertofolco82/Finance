@@ -102,10 +102,13 @@ npm run build   # build di produzione, stesso comando che gira su Vercel
   `strumenti.json` prima (servono mercato/tipo/macro/sottostante, che l'xls non
   contiene). Le posizioni presenti in portafoglio ma assenti dal file vengono
   segnalate, non vendute in automatico.
-- **Piano Vercel Hobby: funzioni limitate a 60s.** Il refresh prezzi (7 lotti da 5
-  titoli) di norma rientra; "Aggiorna rating" su tutti i titoli analizzabili (con
-  attese di cortesia fra una chiamata e l'altra) può superarlo se i titoli
-  analizzabili sono molti. Se vedi timeout lì, o passi al piano Pro (300s) o lanci
+- **Piano Vercel Hobby: funzioni limitate a 60s.** "Aggiorna prezzi" lancia i 7
+  lotti in parallelo (non più in sequenza) per restarci sotto anche con la
+  ricerca web reale, che richiede diversi secondi a lotto. "Aggiorna rating" su
+  tutti i titoli analizzabili resta invece sequenziale (con attese di cortesia
+  fra una chiamata e l'altra) e può superare il limite se i titoli analizzabili
+  sono molti — se vedi un errore non-JSON lì (la funzione terminata a metà da
+  Vercel, non un errore applicativo), o passi al piano Pro (300s) o lanci
   `POST /api/rating/:isin` titolo per titolo.
 - **ETP SK Hynix (XS3388190996) a −90%** resta in portafoglio di default (§13,
   decisione non ancora presa nella spec). Rimuoverlo dai calcoli in versioni future
