@@ -46,6 +46,8 @@ export interface PrezzoRaccolto {
   prezzo: number;
   chiusura_precedente: number | null;
   fonte: string;
+  /** Seduta a cui appartiene il prezzo, se la fonte la dichiara. */
+  data_sessione?: string | null;
 }
 
 interface RisultatoLotto {
@@ -70,7 +72,13 @@ async function elaboraLotto(lotto: Strumento[]): Promise<RisultatoLotto> {
   let primoErrore: string | undefined;
   for (const e of esiti) {
     if (e.prezzo != null) {
-      raccolti.push({ isin: e.isin, prezzo: e.prezzo, chiusura_precedente: e.chiusura_precedente, fonte: e.fonte });
+      raccolti.push({
+        isin: e.isin,
+        prezzo: e.prezzo,
+        chiusura_precedente: e.chiusura_precedente,
+        fonte: e.fonte,
+        data_sessione: e.data_sessione ?? null,
+      });
     } else {
       falliti.push(e.isin);
       if (e.errore && !primoErrore) primoErrore = e.errore;
@@ -143,9 +151,12 @@ export async function salvaRaccolti(
     } else {
       nuoviPrezzi.push({
         isin: r.isin,
-        data: oggi,
+        // Data della SEDUTA, non del momento in cui hai premuto il bottone: un
+        // aggiornamento fatto di sabato archivia la chiusura di venerdì sotto
+        // venerdì, così il P&L giornaliero confronta sempre sedute diverse.
+        data: r.data_sessione ?? oggi,
         chiusura: r.prezzo,
-        chiusura_precedente: r.chiusura_precedente ?? ultimo?.chiusura_precedente ?? null,
+        chiusura_precedente: r.chiusura_precedente ?? null,
         valuta: strumento.valuta,
         fonte: r.fonte,
         raccolto_il: new Date().toISOString(),
@@ -176,7 +187,11 @@ export async function salvaRaccolti(
     return { aggiornati: 0, quarantena: 0, falliti, cambioEurUsd: cambio, ...(primoErrore ? { dettaglioErrore: primoErrore } : {}) };
   }
 
-  await writeData("prezzi", [...prezziStorico, ...nuoviPrezzi], `refresh prezzi ${oggi}`);
+  // Riaggiornare più volte la stessa seduta sostituisce il record invece di
+  // accumularne di doppi: (isin, data) resta una chiave, come previsto da §3.2.
+  const chiaviNuove = new Set(nuoviPrezzi.map((p) => `${p.isin}|${p.data}`));
+  const storicoRipulito = prezziStorico.filter((p) => !chiaviNuove.has(`${p.isin}|${p.data}`));
+  await writeData("prezzi", [...storicoRipulito, ...nuoviPrezzi], `refresh prezzi ${oggi}`);
 
   const sospettiPrecedenti = await readData("sospetti");
   const isinAggiornati = new Set(nuoviPrezzi.map((p) => p.isin));

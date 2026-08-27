@@ -28,6 +28,13 @@ export interface EsitoPrezzo {
   prezzo: number | null;
   chiusura_precedente: number | null;
   fonte: string;
+  /**
+   * Data della seduta a cui il prezzo appartiene (ISO), quando la fonte la
+   * dichiara. Serve a non archiviare la chiusura di venerdì sotto la data di
+   * sabato: il P&L giornaliero confronta sedute, non momenti in cui hai premuto
+   * il bottone.
+   */
+  data_sessione?: string | null;
   errore?: string;
 }
 
@@ -67,6 +74,29 @@ export function campoEtichettato(html: string, etichetta: string): string | null
 export function estraiCampoBorsaItaliana(html: string, etichetta: string): number | null {
   const v = campoEtichettato(html, etichetta);
   return v ? numeroItaliano(v) : null;
+}
+
+/**
+ * Data della seduta a cui appartiene il prezzo. Borsa Italiana la espone in due
+ * forme diverse a seconda del tipo di scheda:
+ *  - ETF/ETC: dentro la cella del prezzo ("128,10 - 27/08/26 17.55.00")
+ *  - obbligazioni e certificati: nell'intestazione ("Ultimo Contratto: 27/08/26")
+ * Anno a due cifre in entrambi i casi.
+ */
+export function estraiDataSessione(html: string): string | null {
+  const daCella = campoEtichettato(html, "Prezzo di riferimento")
+    ?.replace(/&nbsp;/g, " ")
+    .match(/(\d{2})\/(\d{2})\/(\d{2})\b/);
+  // Nell'intestazione la frase è spezzata da tag: vanno rimossi prima di cercarla.
+  const daIntestazione = html
+    .replace(/&nbsp;|&#160;/g, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .match(/Ultimo Contratto:\s*(\d{2})\/(\d{2})\/(\d{2})\b/i);
+  const m = daCella ?? daIntestazione;
+  if (!m) return null;
+  const [, gg, mm, aa] = m;
+  return `20${aa}-${mm}-${gg}`;
 }
 
 /** Prezzo corrente su stockanalysis.com: è il numero grande in testa alla scheda. */
@@ -132,9 +162,11 @@ async function daBorsaItaliana(s: Strumento): Promise<EsitoPrezzo> {
     return {
       isin: s.isin,
       prezzo,
-      // La scheda non espone la chiusura precedente: resta null e il P&L
-      // giornaliero la recupera dallo storico locale (§5.2).
+      // La scheda espone una sola chiusura, non quella precedente: il P&L
+      // giornaliero la recupera dallo storico locale (§5.2), che è attendibile
+      // proprio perché ogni prezzo è archiviato sotto la sua seduta.
       chiusura_precedente: null,
+      data_sessione: estraiDataSessione(html),
       fonte: "Borsa Italiana",
     };
   } catch (e) {

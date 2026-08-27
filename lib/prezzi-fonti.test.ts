@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   campoEtichettato,
   estraiCampoBorsaItaliana,
+  estraiDataSessione,
   estraiPrezzoStockAnalysis,
   numeroInglese,
   numeroItaliano,
@@ -75,5 +76,25 @@ describe("estrazione da stockanalysis", () => {
 
   it("non blocca il prezzo se il range non è leggibile", () => {
     expect(prezzoDentroRange("<div>nessun range</div>", 100)).toBe(true);
+  });
+});
+
+describe("data della seduta", () => {
+  it("legge la data dal campo con prezzo e orario", () => {
+    expect(estraiDataSessione(SCHEDA_ETF)).toBe("2026-08-27");
+  });
+
+  it("resta null quando la fonte non dichiara la seduta", () => {
+    expect(estraiDataSessione(SCHEDA_BOND)).toBeNull();
+  });
+});
+
+describe("data della seduta, forma alternativa", () => {
+  it("legge la data dall'intestazione delle schede obbligazionarie", () => {
+    // Come nella pagina reale: la frase è spezzata da tag.
+    const scheda = `<div class="t-text -xs">Fase: <span>Inaccessible</span>
+      <strong>Ultimo Contratto:</strong> <span>27/08/26</span>&nbsp;&nbsp;</div>
+      <tr><td><strong>Prezzo di riferimento</strong></td><td>87,39</td></tr>`;
+    expect(estraiDataSessione(scheda)).toBe("2026-08-27");
   });
 });
