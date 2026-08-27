@@ -1,6 +1,7 @@
 /** Analisi completa per ISIN — §8. Su derivati risolve il sottostante da sé, non fallisce mai del tutto. */
 
 import { chiedi, erroreFase, estraiJSON } from "./anthropic";
+import { modelloCorrente } from "./settings";
 import { readData, writeData } from "./store";
 import { salvaSottostante } from "./sottostante";
 import type { AnalisiReport } from "./types";
@@ -10,13 +11,14 @@ export async function analizza(isin: string): Promise<AnalisiReport> {
   const s = strumenti.find((x) => x.isin === isin);
   const fond = await readData("fondamentali");
   let sub = s ? fond[isin]?.sotto || s.sottostante : null;
+  const modello = await modelloCorrente();
 
   if (s && !sub) {
     try {
       const t = await chiedi(
         `${isin} qual è il sottostante? È uno strumento${s.emittente ? ` ${s.emittente}` : ""} quotato su ${s.mercato}.\n` +
           `Rispondi con una riga sola: SOTTOSTANTE: <nomi con ticker, oppure NON TROVATO>`,
-        { maxTokens: 900, effort: "low" }
+        { maxTokens: 900, effort: "low", model: modello }
       );
       const m = t.match(/SOTTOSTANTE:\s*(.+)/i);
       if (m?.[1] && !/non trovato/i.test(m[1])) {
@@ -43,7 +45,7 @@ export async function analizza(isin: string): Promise<AnalisiReport> {
         `"metriche":[{"voce":"","valore":"","nota":""}],` +
         `"consenso":{"rating":"","numeroAnalisti":"","ptMedio":"","ptMediano":"","ptMin":"","ptMax":"","distribuzione":""},` +
         `"prossimaTrimestrale":{"data":"","attese":""}}`,
-      { maxTokens: 3000, effort: "medium" }
+      { maxTokens: 3000, effort: "medium", model: modello }
     );
     r1 = estraiJSON<Partial<AnalisiReport>>(t1);
   } catch (e) {
@@ -56,7 +58,7 @@ export async function analizza(isin: string): Promise<AnalisiReport> {
       `Per ${contesto}\nCerca le operazioni degli insider (SEC Form 4 se emittente USA), i principali driver e i rischi.\n\n` +
         `Rispondi SOLO con JSON: {"insider":[{"data":"","persona":"","ruolo":"","tipo":"","importo":""}],` +
         `"driver":[""],"rischi":[""],"lacune":"","fonti":[""]}`,
-      { maxTokens: 2500, effort: "medium" }
+      { maxTokens: 2500, effort: "medium", model: modello }
     );
     r2 = estraiJSON<Partial<AnalisiReport>>(t2);
   } catch (e) {

@@ -9,6 +9,7 @@
  */
 
 import { attesa, chiedi, estraiJSON } from "./anthropic";
+import { modelloCorrente } from "./settings";
 import { readData, ultimoPrezzo, cambioEurUsdCorrente, writeData } from "./store";
 import { costruisciVista } from "./portafoglio";
 import type { PrezzoRecord, PrezzoSospetto, Strumento } from "./types";
@@ -34,13 +35,14 @@ interface PrezzoTrovato {
 export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
   const strumenti = await readData("strumenti");
   const prezziStorico = await readData("prezzi");
+  const modello = await modelloCorrente();
 
   let cambio = cambioEurUsdCorrente(prezziStorico);
   try {
     const testo = await chiedi(
       `Qual è il tasso di cambio EUR/USD più recente (quanti USD per 1 EUR)? ` +
         `Rispondi SOLO con JSON: {"cambio":numero}`,
-      { maxTokens: 300, effort: "low" }
+      { maxTokens: 300, effort: "low", model: modello }
     );
     const d = estraiJSON<{ cambio: number }>(testo);
     if (d.cambio && d.cambio > 0) cambio = d.cambio;
@@ -67,7 +69,7 @@ export async function aggiornaPrezzi(): Promise<RisultatoRefresh> {
           `"chiusura_precedente" è la chiusura della seduta precedente a quella dell'ultimo prezzo trovato.\n` +
           `Rispondi SOLO con JSON: {"prezzi":[{"isin":"","prezzo":numero,"chiusura_precedente":numero,"fonte":"","data":"AAAA-MM-GG"}]}\n` +
           `prezzo o chiusura_precedente null se non li trovi con certezza. Non inventare.`,
-        { maxTokens: 1800, effort: "low" }
+        { maxTokens: 1800, effort: "low", model: modello }
       );
       const d = estraiJSON<{ prezzi: PrezzoTrovato[] }>(testo);
       for (const q of d.prezzi || []) {

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AnalisiTab } from "@/components/AnalisiTab";
 import { PortafoglioTab } from "@/components/PortafoglioTab";
+import { SelettoreModello } from "@/components/SelettoreModello";
 import { TitoloTab } from "@/components/TitoloTab";
 import { ErroreCard, Spinner } from "@/components/ui";
 import { MONO, T, UI } from "@/lib/theme";
@@ -62,8 +63,11 @@ export default function Page() {
             <div style={{ font: `800 16px ${UI}`, letterSpacing: "-.02em" }}>
               Portafoglio<span style={{ color: T.acc }}>.</span>
             </div>
-            <div style={{ font: `500 10px ${MONO}`, color: T.faint }}>
-              {ultimoTs ? new Date(ultimoTs).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <SelettoreModello />
+              <div style={{ font: `500 10px ${MONO}`, color: T.faint }}>
+                {ultimoTs ? new Date(ultimoTs).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}
+              </div>
             </div>
           </div>
           <nav style={{ display: "flex", gap: 4, marginTop: 14 }}>

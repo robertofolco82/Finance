@@ -1,6 +1,7 @@
 /** Rating analisti e calendario utili — §7.2, §10 (disabilitato dove non applicabile). */
 
 import { attesa, chiedi, estraiJSON } from "./anthropic";
+import { modelloCorrente } from "./settings";
 import { readData, writeData } from "./store";
 import type { Fondamentali, RatingLogEntry } from "./types";
 
@@ -24,7 +25,7 @@ interface RispostaFondamentali {
   fonte: string;
 }
 
-export async function aggiornaFondamentali(isin: string): Promise<Fondamentali> {
+export async function aggiornaFondamentali(isin: string, modelloOverride?: string): Promise<Fondamentali> {
   const strumenti = await readData("strumenti");
   const s = strumenti.find((x) => x.isin === isin);
   if (!s) throw new Error(`ISIN ${isin} non in portafoglio.`);
@@ -34,6 +35,7 @@ export async function aggiornaFondamentali(isin: string): Promise<Fondamentali> 
   const naMotivo = fond[isin]?.naMotivo || s.motivo_na;
   if (!s.analizzabile || naMotivo) throw new Error(naMotivo || "strumento non analizzabile.");
 
+  const modello = modelloOverride ?? (await modelloCorrente());
   const testo = await chiedi(
     `Titolo: ${sub}. Cerca il consenso degli analisti e il calendario utili.\n` +
       `Fonti: Google Finance, MarketScreener, Nasdaq, StockAnalysis, investor relations.\n` +
@@ -42,7 +44,7 @@ export async function aggiornaFondamentali(isin: string): Promise<Fondamentali> 
       `"upMedio":num,"upMax":num,"upMin":num,"dataRilevazione":"AAAA-MM-GG",` +
       `"prossimiUtili":"AAAA-MM-GG","attese":"","guidance":"","fonte":""}\n` +
       `Numeri puri senza simboli. null se non verificabile.`,
-    { maxTokens: 1800, effort: "medium" }
+    { maxTokens: 1800, effort: "medium", model: modello }
   );
   const d = estraiJSON<Partial<RispostaFondamentali>>(testo);
 
@@ -102,11 +104,12 @@ export async function aggiornaFondamentaliTutti(): Promise<RisultatoRatingTutti>
     return sub && s.analizzabile && !fond[s.isin]?.naMotivo && !s.motivo_na;
   });
 
+  const modello = await modelloCorrente();
   const ok: string[] = [];
   const falliti: string[] = [];
   for (const [i, s] of target.entries()) {
     try {
-      await aggiornaFondamentali(s.isin);
+      await aggiornaFondamentali(s.isin, modello);
       ok.push(s.isin);
     } catch {
       falliti.push(s.isin);

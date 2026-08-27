@@ -1,6 +1,7 @@
 /** Risoluzione del sottostante — §6.3: domanda diretta, poi fallback, mai solo fonti ufficiali. */
 
 import { chiedi } from "./anthropic";
+import { modelloCorrente } from "./settings";
 import { readData, writeData } from "./store";
 import type { Fondamentali } from "./types";
 
@@ -15,6 +16,7 @@ export async function trovaSottostante(isin: string): Promise<RisultatoMappa> {
   const s = strumenti.find((x) => x.isin === isin);
   if (!s) throw new Error(`ISIN ${isin} non in portafoglio.`);
 
+  const modello = await modelloCorrente();
   const testo = await chiedi(
     `${isin} qual è il sottostante?\n` +
       `È lo strumento "${s.nome}"${s.emittente ? `, emittente ${s.emittente}` : ""}, quotato su ${s.mercato}.\n` +
@@ -22,7 +24,7 @@ export async function trovaSottostante(isin: string): Promise<RisultatoMappa> {
       `Chiudi con due righe:\n` +
       `SOTTOSTANTE: <nomi con ticker, oppure NON TROVATO>\n` +
       `GENERE: <azione | indice | materia prima | valuta | altro>`,
-    { maxTokens: 1200, effort: "low" }
+    { maxTokens: 1200, effort: "low", model: modello }
   );
   const m = testo.match(/SOTTOSTANTE:\s*(.+)/i);
   const g = testo.match(/GENERE:\s*(.+)/i);

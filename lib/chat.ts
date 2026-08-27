@@ -1,6 +1,7 @@
 /** Chat sul titolo — §7.2. Contesto precaricato, niente ricerca web, risposte brevi. */
 
 import { chiedi } from "./anthropic";
+import { modelloCorrente } from "./settings";
 import { readData, writeData } from "./store";
 import { posizioneDaMovimenti } from "./calc";
 import type { ChatMessage } from "./types";
@@ -39,11 +40,12 @@ export async function chattaSuTitolo(isin: string, domanda: string): Promise<Cha
 
   let rispostaTesto: string;
   try {
+    const modello = await modelloCorrente();
     rispostaTesto = await chiedi(
       `Contesto:\n${contesto}\n${dialogo}\n\n` +
         `Rispondi all'ultima domanda in italiano, massimo 6 frasi, concreto e senza preamboli. ` +
         `Se una cosa non la sai dal contesto, dillo invece di inventarla. Non dare raccomandazioni di acquisto o vendita.`,
-      { ricerca: false, maxTokens: 700, effort: "low" }
+      { ricerca: false, maxTokens: 700, effort: "low", model: modello }
     );
   } catch (e) {
     rispostaTesto = `Non sono riuscito a rispondere: ${(e as Error).message}`;

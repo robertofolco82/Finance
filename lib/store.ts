@@ -20,6 +20,7 @@ import type {
   CallRicevuta,
   ChatMessage,
   Fondamentali,
+  Impostazioni,
   Movimento,
   PrezzoRecord,
   PrezzoSospetto,
@@ -39,6 +40,7 @@ export const DATA_FILES = {
   chat: "chat.json",
   analisi: "analisi.json",
   sospetti: "sospetti.json",
+  impostazioni: "impostazioni.json",
 } as const;
 
 export type DataFileKey = keyof typeof DATA_FILES;
@@ -54,6 +56,7 @@ interface DataFileShape {
   chat: Record<string, ChatMessage[]>;
   analisi: Record<string, AnalisiReport>;
   sospetti: PrezzoSospetto[];
+  impostazioni: Impostazioni;
 }
 
 function backend(): "fs" | "github" {

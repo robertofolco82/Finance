@@ -37,6 +37,8 @@ export interface ChiediOpzioni {
   tentativi?: number;
   system?: string;
   effort?: Effort;
+  /** Sovrascrive DEFAULT_MODEL — tipicamente lib/settings.ts#modelloCorrente(). */
+  model?: string;
 }
 
 /**
@@ -47,14 +49,14 @@ export async function chiedi(
   contenuto: Anthropic.MessageParam["content"],
   opzioni: ChiediOpzioni = {}
 ): Promise<string> {
-  const { ricerca = true, maxTokens = 2000, tentativi = 5, system, effort = "medium" } = opzioni;
+  const { ricerca = true, maxTokens = 2000, tentativi = 5, system, effort = "medium", model = DEFAULT_MODEL } = opzioni;
   const anthropic = client();
   let ultimoErrore: Error = new Error("errore sconosciuto");
 
   for (let tentativo = 0; tentativo < tentativi; tentativo++) {
     try {
       const response = await anthropic.messages.create({
-        model: DEFAULT_MODEL,
+        model,
         max_tokens: maxTokens,
         output_config: { effort },
         ...(system ? { system } : {}),

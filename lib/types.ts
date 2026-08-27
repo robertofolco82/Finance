@@ -179,6 +179,12 @@ export interface PrezzoSospetto {
   valuta: string;
 }
 
+/** Impostazioni utente — oggi solo la scelta del modello, vedi lib/settings.ts. */
+export interface Impostazioni {
+  /** null = usa ANTHROPIC_MODEL (Vercel) o il default nel codice. */
+  modello: string | null;
+}
+
 /** L'intero store versionato su disco/GitHub. Vedi lib/store.ts. */
 export interface DataStore {
   strumenti: Strumento[];
@@ -191,4 +197,5 @@ export interface DataStore {
   chat: Record<string, ChatMessage[]>;
   analisi: Record<string, AnalisiReport>;
   sospetti: PrezzoSospetto[]; // quarantena corrente
+  impostazioni: Impostazioni;
 }

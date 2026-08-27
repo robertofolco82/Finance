@@ -42,7 +42,7 @@ Copia `.env.example` e compila:
 | Variabile | Cosa serve |
 |---|---|
 | `ANTHROPIC_API_KEY` | Prezzi, sottostanti, rating, analisi, chat, track record. Server-side only. |
-| `ANTHROPIC_MODEL` | Default `claude-opus-5`. Vedi [Costi](#costi) per alternative più economiche. |
+| `ANTHROPIC_MODEL` | Scelta di partenza (default nel codice `claude-opus-5` se lasci vuoto). Una volta impostato un modello dal menù a tendina in dashboard, quella scelta ha sempre la priorità — vedi [Costi](#costi). |
 | `GITHUB_TOKEN` | Fine-grained personal access token con **Contents: Read and write** solo su questo repo (Settings → Developer settings → Fine-grained tokens). Usato dalle funzioni Vercel per leggere/scrivere `data/*.json`. |
 | `GITHUB_REPO` | `robertofolco82/finance` |
 | `GITHUB_BRANCH` | Il branch che Vercel sta effettivamente servendo (le scritture vanno lì). |
@@ -113,10 +113,21 @@ npm run build   # build di produzione, stesso comando che gira su Vercel
 ## Costi
 
 Il fetcher gira una volta al giorno nei feriali (28 ISIN, 7 chiamate a lotti + 1 per
-il cambio) più le chiamate on-demand da UI (rating, analisi, chat). Il codice usa
-`claude-opus-5` di default. Per un uso ripetuto come questo, `claude-sonnet-5` è
-un'alternativa più economica a parità di funzionalità: basta impostare
-`ANTHROPIC_MODEL=claude-sonnet-5` su Vercel, nessuna modifica al codice.
+il cambio) più le chiamate on-demand da UI (rating, analisi, chat).
+
+Il modello si sceglie in due punti, con priorità a quello più vicino all'utente:
+
+1. **Menù a tendina in dashboard** (in alto, accanto all'orario dell'ultimo
+   aggiornamento) — salva la scelta in `data/impostazioni.json`, quindi vale per
+   tutti i dispositivi da cui apri il sito, non solo quello su cui l'hai cambiata.
+   Cambia effetto dalla chiamata successiva, senza bisogno di "Redeploy" su Vercel.
+2. **`ANTHROPIC_MODEL` su Vercel** — usata solo finché dal menù non è stato scelto
+   nulla ("Predefinito"). Utile come scelta di partenza per un deploy nuovo.
+
+Il codice offre tre livelli (vedi `lib/modelli.ts` per l'elenco esatto): il più
+capace (`claude-opus-5`), un buon compromesso qualità/costo (`claude-sonnet-5`,
+quello impostato di default in `.env.example`), e il più economico
+(`claude-haiku-4-5-20251001`) per chi vuole spendere il minimo indispensabile.
 
 ## Struttura del progetto
 
@@ -133,6 +144,7 @@ lib/
   anthropic.ts            client Claude con retry/backoff (§11)
   fetch-prezzi.ts         fetcher prezzi + quarantena + snapshot
   fondamentali.ts, analisi.ts, chat.ts, call.ts, sottostante.ts
+  modelli.ts, settings.ts modelli selezionabili + impostazione scelta dall'utente
 data/                    store versionato (strumenti, movimenti, prezzi, snapshot, ...)
 SPEC.md                 documento di consegna originale — requisiti e decisioni
 ```
