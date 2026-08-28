@@ -1,4 +1,4 @@
-/** Design tokens — SPEC.md §7.4. Card invece di tabelle, cifre in monospace tabulare. */
+/** Design tokens — tema Modernist: ink su fondo chiaro, un solo accento rosso, raggio 0. */
 
 export const T = {
   bg: "var(--bg)",
@@ -14,33 +14,36 @@ export const T = {
   negBg: "var(--negBg)",
   acc: "var(--acc)",
   accBg: "var(--accBg)",
+  accSolid: "var(--accSolid)",
   warn: "var(--warn)",
   warnBg: "var(--warnBg)",
 } as const;
 
-export const R = 14;
-export const OMBRA = "0 1px 2px rgba(11,15,23,.05), 0 6px 20px -8px rgba(11,15,23,.10)";
-export const UI = "var(--font-manrope), -apple-system, system-ui, sans-serif";
-export const MONO = "var(--font-jetbrains-mono), ui-monospace, monospace";
+export const R = 0;
+export const OMBRA = "none";
+export const UI = "var(--font-archivo), system-ui, sans-serif";
+export const MONO = "var(--font-archivo), system-ui, sans-serif";
 
+// Sistema mono: nessuna seconda tinta. Solo gli strumenti a leva/turbo (rischio)
+// usano l'accento; il resto resta su grigi neutri — l'accento si nota perché è raro.
 export const MACRO_COL: Record<string, string> = {
-  Azioni: "#00A06B",
-  Obbligazioni: "#2F4BFF",
-  Monetario: "#8FA0C9",
-  Commodities: "#B37400",
+  Azioni: "#ae1800",
+  Obbligazioni: "#2d2b2b",
+  Monetario: "#bab6b6",
+  Commodities: "#7d7979",
 };
 
 export const CLASSE_COL: Record<string, string> = {
-  Azione: "#00A06B",
-  "ETF azionario": "#1B8A66",
-  Turbo: "#E0393E",
-  "Leva fissa": "#E0393E",
-  "ETP leva": "#E0393E",
-  Strutturato: "#B37400",
-  Governativo: "#2F4BFF",
-  "ETF obbligazionario": "#5C79FF",
-  Monetario: "#8FA0C9",
-  ETC: "#8A6E3F",
+  Azione: "#605d5d",
+  "ETF azionario": "#605d5d",
+  Turbo: "#ae1800",
+  "Leva fissa": "#ae1800",
+  "ETP leva": "#ae1800",
+  Strutturato: "#605d5d",
+  Governativo: "#605d5d",
+  "ETF obbligazionario": "#605d5d",
+  Monetario: "#605d5d",
+  ETC: "#605d5d",
 };
 
 export const nf = (n: number | null | undefined, d = 0): string =>
