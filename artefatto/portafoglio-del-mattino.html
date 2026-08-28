@@ -1,0 +1,799 @@
+<title>Portafoglio del Mattino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ─── Token. Palette chiara completa su :root; il tema scuro ridefinisce SOLO
+       i token, mai i componenti. Tre stati: scelta esplicita chiara, scelta
+       esplicita scura, e "sistema" (nessuno stamp) che dipende dal SO. ─── */
+:root{
+  --bg:#f5f6f9; --surf:#ffffff; --surf2:#f0f2f6; --surf3:#e9edf4;
+  --ink:#0b0f17; --mut:#69738a; --faint:#98a1b3; --line:#e4e8ef; --line2:#d3dae6;
+  --acc:#2f4bff; --accBg:#edf0ff;
+  --pos:#00a06b; --neg:#e0393e; --warn:#b37400; --warnBg:#fff6e3;
+  --ombra:0 1px 2px rgba(11,15,23,.05), 0 6px 20px -8px rgba(11,15,23,.10);
+  --ombraAlta:0 2px 6px rgba(11,15,23,.08), 0 18px 40px -12px rgba(11,15,23,.22);
+  --ui:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c0f16; --surf:#141a24; --surf2:#1b2231; --surf3:#232c3d;
+    --ink:#e9edf4; --mut:#98a3b8; --faint:#6e7a90; --line:#242c3b; --line2:#333f54;
+    --acc:#8aa0ff; --accBg:#1a2340;
+    --pos:#1f9068; --neg:#ff9da0; --warn:#d9a03a; --warnBg:#2b2413;
+    --ombra:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -8px rgba(0,0,0,.6);
+    --ombraAlta:0 2px 6px rgba(0,0,0,.5), 0 18px 40px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c0f16; --surf:#141a24; --surf2:#1b2231; --surf3:#232c3d;
+  --ink:#e9edf4; --mut:#98a3b8; --faint:#6e7a90; --line:#242c3b; --line2:#333f54;
+  --acc:#8aa0ff; --accBg:#1a2340;
+  --pos:#1f9068; --neg:#ff9da0; --warn:#d9a03a; --warnBg:#2b2413;
+  --ombra:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -8px rgba(0,0,0,.6);
+  --ombraAlta:0 2px 6px rgba(0,0,0,.5), 0 18px 40px -12px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:400 15px/1.55 var(--ui);
+  -webkit-font-smoothing:antialiased;
+}
+.n{font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+.guscio{max-width:1120px; margin:0 auto; padding:26px 18px 80px}
+
+/* ─── Intestazione ─── */
+.testata{display:flex; justify-content:space-between; align-items:flex-start; gap:18px; flex-wrap:wrap; margin-bottom:22px}
+.marchio{display:flex; align-items:center; gap:11px}
+.sigillo{
+  width:34px; height:34px; border-radius:10px; flex:none;
+  background:linear-gradient(150deg,var(--acc),color-mix(in oklab,var(--acc) 55%, var(--ink)));
+  display:grid; place-items:center; color:#fff; font:800 15px/1 var(--ui);
+}
+.marchio h1{margin:0; font:800 19px/1.2 var(--ui); letter-spacing:-.02em}
+.marchio p{margin:2px 0 0; font:500 12px/1.3 var(--ui); color:var(--faint)}
+.strumenti{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+
+button{font:inherit; color:inherit; cursor:pointer}
+.btn{
+  border:1px solid var(--line2); background:var(--surf); color:var(--ink);
+  border-radius:9px; padding:8px 13px; font:600 12.5px var(--ui);
+  transition:background .15s, border-color .15s, transform .06s;
+}
+.btn:hover{background:var(--surf2); border-color:var(--faint)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.42; cursor:not-allowed}
+.btn.primario{background:var(--acc); border-color:var(--acc); color:#fff}
+.btn.primario:hover{filter:brightness(1.08); background:var(--acc)}
+:focus-visible{outline:2px solid var(--acc); outline-offset:2px; border-radius:6px}
+
+/* ─── Riquadri ─── */
+.card{background:var(--surf); border:1px solid var(--line); border-radius:15px; box-shadow:var(--ombra); padding:18px}
+.eyebrow{
+  font:700 9.5px var(--ui); letter-spacing:.1em; text-transform:uppercase; color:var(--faint);
+  display:block; margin:0 0 3px;
+}
+.griglia{display:grid; gap:14px}
+
+/* ─── Sintesi ─── */
+.sintesi{grid-template-columns:1.35fr 1fr 1fr 1fr; align-items:stretch}
+@media (max-width:900px){.sintesi{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.sintesi{grid-template-columns:1fr}}
+.totale .cifra{font:700 34px/1.05 var(--mono); letter-spacing:-.035em; display:block; margin-top:6px}
+.totale .sotto{font:500 11.5px var(--ui); color:var(--faint); margin-top:7px}
+.kpi .cifra{font:700 22px/1.15 var(--mono); letter-spacing:-.025em; display:block; margin-top:5px}
+.kpi .sotto{font:500 11px/1.45 var(--ui); color:var(--faint); margin-top:6px; display:block}
+.pos{color:var(--pos)} .neg{color:var(--neg)} .neutro{color:var(--mut)}
+
+.pillola{
+  display:inline-flex; align-items:center; gap:4px; border-radius:999px;
+  padding:2px 8px; font:700 11px var(--mono); margin-left:7px; vertical-align:2px;
+}
+.pillola.su{background:color-mix(in oklab,var(--pos) 13%, transparent); color:var(--pos)}
+.pillola.giu{background:color-mix(in oklab,var(--neg) 15%, transparent); color:var(--neg)}
+.pillola.piatta{background:var(--surf2); color:var(--mut)}
+
+/* ─── Istogramma attribuzione ─── */
+.intestaCard{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:14px}
+.intestaCard .nota{font:500 11px var(--ui); color:var(--faint)}
+.isto{position:relative; height:190px; display:flex; align-items:stretch; gap:2px; margin:0 0 4px}
+.assey{
+  width:52px; flex:none; position:relative; font:500 10px var(--mono); color:var(--faint);
+}
+.assey span{position:absolute; right:8px; transform:translateY(-50%); white-space:nowrap}
+.colonne{flex:1; position:relative; display:flex; align-items:stretch; gap:2px; min-width:0}
+.zero{position:absolute; left:0; right:0; height:1px; background:var(--line2); z-index:1}
+.griglialinea{position:absolute; left:0; right:0; height:1px; background:var(--line); opacity:.7}
+.col{
+  flex:1 1 0; min-width:0; position:relative; background:none; border:0; padding:0;
+  display:block; z-index:2;
+}
+.col .barra{
+  position:absolute; left:9%; right:9%; border-radius:3px 3px 0 0;
+  transition:filter .12s;
+}
+.col .barra.giu{border-radius:0 0 3px 3px}
+.col:hover .barra, .col:focus-visible .barra{filter:brightness(1.18) saturate(1.15)}
+.col.spenta .barra{background:var(--line2) !important}
+
+.suggerimento{
+  position:fixed; z-index:60; pointer-events:none; opacity:0; transform:translateY(3px);
+  transition:opacity .12s, transform .12s;
+  background:var(--surf); border:1px solid var(--line2); border-radius:11px;
+  box-shadow:var(--ombraAlta); padding:10px 12px; max-width:250px;
+}
+.suggerimento.mostra{opacity:1; transform:none}
+.suggerimento .t{font:700 12.5px var(--ui); line-height:1.3}
+.suggerimento .r{display:flex; gap:9px; align-items:baseline; margin-top:5px; flex-wrap:wrap}
+.suggerimento .p{font:500 10px var(--ui); color:var(--faint); margin-top:3px}
+
+.estremi{display:grid; gap:5px; font:500 12px/1.5 var(--ui); color:var(--mut); margin-top:12px; padding-top:12px; border-top:1px solid var(--line)}
+.estremi strong{color:var(--ink); font-weight:700}
+
+/* ─── Composizione: barre ordinate, una sola tinta, etichette dirette ─── */
+.duecolonne{grid-template-columns:1fr 1fr; margin-bottom:14px}
+@media (max-width:760px){.duecolonne{grid-template-columns:1fr}}
+.comp{display:grid; gap:11px}
+.compRiga{display:grid; grid-template-columns:1fr auto; gap:3px 12px; align-items:baseline}
+.compRiga .et{font:600 12.5px var(--ui)}
+.compRiga .vals{font:500 11.5px var(--mono); color:var(--mut); white-space:nowrap}
+.compRiga .traccia{grid-column:1/-1; height:9px; background:var(--surf2); border-radius:5px; overflow:hidden}
+.compRiga .riemp{height:100%; background:var(--acc); border-radius:5px}
+
+/* ─── Tabella posizioni ─── */
+.scorri{overflow-x:auto; margin:0 -18px; padding:0 18px}
+table{width:100%; border-collapse:collapse; min-width:660px}
+thead th{
+  font:700 9.5px var(--ui); letter-spacing:.09em; text-transform:uppercase; color:var(--faint);
+  text-align:right; padding:0 9px 9px; border-bottom:1px solid var(--line); white-space:nowrap;
+}
+thead th:first-child{text-align:left; padding-left:2px}
+thead th button{
+  background:none; border:0; padding:0; font:inherit; color:inherit; letter-spacing:inherit;
+  text-transform:inherit; display:inline-flex; align-items:center; gap:3px;
+}
+thead th button:hover{color:var(--ink)}
+thead th .frec{opacity:.55; font-size:9px}
+tbody tr{border-bottom:1px solid var(--line); cursor:pointer}
+tbody tr:hover{background:var(--surf2)}
+tbody tr.aperta{background:var(--surf2)}
+tbody td{padding:10px 9px; text-align:right; white-space:nowrap; font-size:13.5px}
+tbody td:first-child{text-align:left; padding-left:2px; white-space:normal; min-width:190px}
+.tit{font:600 13.5px/1.3 var(--ui)}
+.sott{font:500 10.5px/1.35 var(--ui); color:var(--faint); margin-top:2px}
+.tag{
+  display:inline-block; font:700 8.5px var(--ui); letter-spacing:.07em; text-transform:uppercase;
+  padding:2px 6px; border-radius:5px; background:var(--surf3); color:var(--mut); margin-right:5px;
+}
+tr.dettaglio > td{padding:0; background:var(--surf2)}
+.pannello{padding:14px 2px 18px; display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.voce .e{font:700 9px var(--ui); letter-spacing:.09em; text-transform:uppercase; color:var(--faint); display:block}
+.voce .v{font:500 13.5px var(--mono); margin-top:3px; display:block}
+.modPrezzo{grid-column:1/-1; display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; padding-top:4px; border-top:1px solid var(--line)}
+.modPrezzo label{font:700 9px var(--ui); letter-spacing:.09em; text-transform:uppercase; color:var(--faint); display:block; margin-bottom:5px}
+.modPrezzo input{
+  font:500 14px var(--mono); padding:7px 10px; width:130px;
+  background:var(--surf); color:var(--ink); border:1px solid var(--line2); border-radius:8px;
+}
+.avviso{
+  grid-column:1/-1; background:var(--warnBg); border:1px solid color-mix(in oklab,var(--warn) 35%, transparent);
+  color:var(--warn); border-radius:9px; padding:9px 12px; font:600 12px/1.45 var(--ui);
+}
+
+/* ─── Barra di stato ─── */
+/* Non appiccicata in basso: su una tabella lunga coprirebbe le ultime righe. */
+.barraStato{display:flex; gap:9px; align-items:center; flex-wrap:wrap; margin-top:16px}
+.barraStato .msg{font:500 12px var(--ui); color:var(--mut); margin-right:auto}
+.legenda{display:flex; gap:14px; flex-wrap:wrap; font:500 11px var(--ui); color:var(--mut); margin-top:10px}
+.legenda i{width:9px; height:9px; border-radius:2px; display:inline-block; margin-right:5px; vertical-align:-1px}
+.vuoto{font:500 13px/1.6 var(--ui); color:var(--mut); padding:6px 0}
+
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+</style>
+
+<div class="guscio">
+  <header class="testata">
+    <div class="marchio">
+      <div class="sigillo" aria-hidden="true">P</div>
+      <div>
+        <h1>Portafoglio del Mattino</h1>
+        <p id="sottotitolo">—</p>
+      </div>
+    </div>
+    <div class="strumenti">
+      <button class="btn" id="btnTema" type="button">Tema</button>
+      <button class="btn" id="btnBackup" type="button" hidden>Scarica backup</button>
+    </div>
+  </header>
+
+  <section class="griglia sintesi" style="margin-bottom:14px">
+    <div class="card totale">
+      <span class="eyebrow">Valore del portafoglio</span>
+      <span class="cifra n" id="kTotale">—</span>
+      <div class="sotto" id="kTotaleSotto">—</div>
+    </div>
+    <div class="card kpi">
+      <span class="eyebrow" id="kGiornoTit">P&amp;L di oggi</span>
+      <span class="cifra n" id="kGiorno">—</span>
+      <span class="sotto" id="kGiornoSotto">—</span>
+    </div>
+    <div class="card kpi">
+      <span class="eyebrow">P&amp;L complessivo</span>
+      <span class="cifra n" id="kTot">—</span>
+      <span class="sotto" id="kTotSotto">—</span>
+    </div>
+    <div class="card kpi">
+      <span class="eyebrow">Cambio EUR/USD</span>
+      <span class="cifra n" id="kFx">—</span>
+      <span class="sotto" id="kFxSotto">—</span>
+    </div>
+  </section>
+
+  <section class="card" style="margin-bottom:14px">
+    <div class="intestaCard">
+      <span class="eyebrow" style="margin:0">Chi ha mosso il totale oggi</span>
+      <span class="nota">variazione in € rispetto alla chiusura precedente</span>
+    </div>
+    <div id="isto"></div>
+    <div class="estremi" id="estremi"></div>
+  </section>
+
+  <section class="griglia duecolonne" id="grigliaBassa">
+    <div class="card">
+      <div class="intestaCard">
+        <span class="eyebrow" style="margin:0">Composizione</span>
+        <span class="nota">per classe di rischio</span>
+      </div>
+      <div class="comp" id="comp"></div>
+    </div>
+    <div class="card">
+      <div class="intestaCard">
+        <span class="eyebrow" style="margin:0">Obbligazionario</span>
+        <span class="nota">rendimento e sensibilità ai tassi</span>
+      </div>
+      <div id="bond"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="intestaCard">
+      <span class="eyebrow" style="margin:0">Posizioni</span>
+      <span class="nota">tocca una riga per il dettaglio e per correggere il prezzo</span>
+    </div>
+    <div class="scorri">
+      <table>
+        <thead><tr id="capo"></tr></thead>
+        <tbody id="corpo"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="barraStato">
+    <span class="msg" id="msg"></span>
+    <button class="btn" id="btnAzzera" type="button" hidden>Annulla le mie correzioni</button>
+  </div>
+</div>
+
+<div class="suggerimento" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   Portafoglio del Mattino — calcolatore autonomo.
+   Le formule sono la porta esatta di SPEC.md §5: valore di mercato, P&L di
+   giornata sulla chiusura precedente, P&L dal carico, YTM per bisezione,
+   duration modificata, attribuzione. Nessuna rete, nessuna chiave, nessun
+   servizio esterno: i prezzi arrivano dentro il file e si correggono a mano.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const DATI = {"aggiornato":"2026-08-28T08:11:42.622Z","cambioEurUsd":1.1645,"strumenti":[{"isin":"US20451W1018","nome":"Compass Pathways","tipo":"Azione","classe":"Azione","macro":"Azioni","valuta":"USD","simbolo":"CMPS","sottostante":"Compass Pathways (CMPS)","mercato":"NASDAQ"},{"isin":"US8740391003","nome":"Taiwan Semiconductor ADR","tipo":"Azione","classe":"Azione","macro":"Azioni","valuta":"USD","simbolo":"TSM","sottostante":"TSMC (TSM)","mercato":"NYSE"},{"isin":"NL0010273215","nome":"ASML Holding","tipo":"Azione","classe":"Azione","macro":"Azioni","valuta":"EUR","simbolo":"ASML","sottostante":"ASML (ASML)","mercato":"XETRA"},{"isin":"IE00BFMXXD54","nome":"Vanguard S&P 500 Acc","tipo":"ETF","classe":"ETF azionario","macro":"Azioni","valuta":"EUR","simbolo":"VUAA","sottostante":"S&P 500","mercato":"ETFplus"},{"isin":"IE00B3XXRP09","nome":"Vanguard S&P 500 Dis","tipo":"ETF","classe":"ETF azionario","macro":"Azioni","valuta":"EUR","simbolo":"VUSA","sottostante":"S&P 500","mercato":"ETFplus"},{"isin":"IE00BLDGHT92","nome":"UBS Euro Equity Put Write","tipo":"ETF","classe":"ETF azionario","macro":"Azioni","valuta":"EUR","simbolo":"UIQ4","sottostante":"Euro Stoxx 50 (put write)","mercato":"XETRA"},{"isin":"DE000VY3NBZ6","nome":"Vontobel Turbo Long","tipo":"Certificate","classe":"Turbo","macro":"Azioni","valuta":"EUR","simbolo":"F95123","sottostante":"Micron Technology (MU)","mercato":"SeDeX"},{"isin":"NLBNPIT3MRU4","nome":"BNP Turbo Long","tipo":"Certificate","classe":"Turbo","macro":"Azioni","valuta":"EUR","simbolo":"P3MRU4","sottostante":"JD.com (JD)","mercato":"SeDeX"},{"isin":"NLBNPIT37C90","nome":"BNP Turbo Open-End Long","tipo":"Certificate","classe":"Turbo","macro":"Azioni","valuta":"EUR","simbolo":"P37C90","sottostante":"JD.com Inc ADR (JD)","mercato":"SeDeX"},{"isin":"NLBNPIT3MA79","nome":"BNP Constant Leverage Long 7x","tipo":"Certificate","classe":"Leva fissa","macro":"Commodities","valuta":"EUR","simbolo":"P3MA79","sottostante":"Brent Crude Oil (future)","mercato":"SeDeX"},{"isin":"XS3388190996","nome":"Leverage Shares 3x Long SK Hynix","tipo":"ETN","classe":"ETP leva","macro":"Azioni","valuta":"EUR","simbolo":"HNX3","sottostante":"SK Hynix (000660.KS)","mercato":"ETFplus"},{"isin":"CH1358858129","nome":"Leonteq Express su 4 indici","tipo":"Certificate","classe":"Strutturato","macro":"Azioni","valuta":"EUR","simbolo":"JCSOHI","scadenza":"2028-07-25","sottostante":"EURO STOXX 50 / FTSE MIB / NASDAQ 100 / NIKKEI 225","mercato":"EuroTLX"},{"isin":"CH1336232371","nome":"Leonteq Express su 3 banche","tipo":"Certificate","classe":"Strutturato","macro":"Azioni","valuta":"EUR","simbolo":"JCNYGW","scadenza":"2029-04-10","sottostante":"Banco BPM (BAMI) / Barclays (BARC) / Commerzbank (CBK)","mercato":"EuroTLX"},{"isin":"IT0006775073","nome":"Marex Phoenix su 3 indici","tipo":"Certificate","classe":"Strutturato","macro":"Azioni","valuta":"EUR","simbolo":"JDMUXP","scadenza":"2029-04-25","sottostante":"EURO STOXX 50 / S&P 500 / NIKKEI 225","mercato":"EuroTLX"},{"isin":"DE000UR0A4S0","nome":"UniCredit Cash Collect su indici","tipo":"Certificate","classe":"Strutturato","macro":"Azioni","valuta":"EUR","simbolo":"UR0A4S","scadenza":"2029-05-17","sottostante":"S&P 500 / NIKKEI 225 / EURO STOXX 50","mercato":"EuroTLX"},{"isin":"IE00B579F325","nome":"Invesco Physical Gold","tipo":"ETC","classe":"ETC","macro":"Commodities","valuta":"EUR","simbolo":"SGLD","sottostante":"Oro spot (XAU)","mercato":"ETFplus"},{"isin":"LU0290358497","nome":"Xtrackers EUR Overnight","tipo":"ETF","classe":"Monetario","macro":"Monetario","valuta":"EUR","simbolo":"XEON","sottostante":"€STR","mercato":"ETFplus"},{"isin":"IE00B3VWN179","nome":"iShares $ Treasury 1-3y","tipo":"ETF","classe":"ETF obbligazionario","macro":"Obbligazioni","valuta":"EUR","simbolo":"CSBGU3","sottostante":"US Treasury 1-3y","mercato":"ETFplus"},{"isin":"LU1287023185","nome":"Amundi Euro Gov 7-10y","tipo":"ETF","classe":"ETF obbligazionario","macro":"Obbligazioni","valuta":"EUR","simbolo":"EM710","sottostante":"Euro Gov 7-10y","mercato":"ETFplus"},{"isin":"IE000UWJUW87","nome":"HANetf KRC Cat Bond","tipo":"ETF","classe":"ETF obbligazionario","macro":"Obbligazioni","valuta":"EUR","simbolo":"CATB","sottostante":"Catastrophe bond","mercato":"ETFplus"},{"isin":"IT0005436693","nome":"BTP 0,60% ago 2031","tipo":"Obbligazione","classe":"Governativo","macro":"Obbligazioni","valuta":"EUR","simbolo":"JA3MCU","scadenza":"2031-08-01","cedola":0.6,"frequenza_cedolare":2,"sottostante":"Repubblica Italiana","mercato":"MOT"},{"isin":"BE0000351602","nome":"Belgio 0% ott 2027","tipo":"Obbligazione","classe":"Governativo","macro":"Obbligazioni","valuta":"EUR","simbolo":"JAS8RY","scadenza":"2027-10-22","cedola":0,"frequenza_cedolare":1,"sottostante":"Regno del Belgio","mercato":"MOT"},{"isin":"AT0000A2VB47","nome":"Austria 0% ott 2028","tipo":"Obbligazione","classe":"Governativo","macro":"Obbligazioni","valuta":"EUR","simbolo":"0A2VB4","scadenza":"2028-10-20","cedola":0,"frequenza_cedolare":1,"sottostante":"Repubblica d'Austria","mercato":"MOT"},{"isin":"EU000A283859","nome":"UE 0% ott 2030","tipo":"Obbligazione","classe":"Governativo","macro":"Obbligazioni","valuta":"EUR","simbolo":"619537","scadenza":"2030-10-04","cedola":0,"frequenza_cedolare":1,"sottostante":"Unione Europea","mercato":"MOT"},{"isin":"DE0001102523","nome":"Germania 0% nov 2027","tipo":"Obbligazione","classe":"Governativo","macro":"Obbligazioni","valuta":"EUR","simbolo":"JATZNV","scadenza":"2027-11-15","cedola":0,"frequenza_cedolare":1,"sottostante":"Repubblica Federale di Germania","mercato":"MOT"},{"isin":"FR0014007L00","nome":"Francia 0% mag 2032","tipo":"Obbligazione","classe":"Governativo","macro":"Obbligazioni","valuta":"EUR","simbolo":"4007L0","scadenza":"2032-05-25","cedola":0,"frequenza_cedolare":1,"sottostante":"Repubblica Francese","mercato":"MOT"},{"isin":"XS1503043694","nome":"BEI 0,25% set 2029","tipo":"Obbligazione","classe":"Governativo","macro":"Obbligazioni","valuta":"EUR","simbolo":"JAFNO4","scadenza":"2029-09-14","cedola":0.25,"frequenza_cedolare":1,"sottostante":"Banca Europea per gli Investimenti","mercato":"MOT"},{"isin":"XS2388495942","nome":"BEI 0% dic 2026","tipo":"Obbligazione","classe":"Governativo","macro":"Obbligazioni","valuta":"EUR","simbolo":"JB9EK9","scadenza":"2026-12-22","cedola":0,"frequenza_cedolare":1,"sottostante":"Banca Europea per gli Investimenti","mercato":"MOT"}],"movimenti":[{"isin":"US20451W1018","data":"2026-08-22","segno":"acquisto","quantita":200,"prezzo":10.388223,"cambio":1.1682},{"isin":"US8740391003","data":"2026-08-22","segno":"acquisto","quantita":12,"prezzo":255.542047,"cambio":1.1682},{"isin":"NL0010273215","data":"2026-08-22","segno":"acquisto","quantita":4,"prezzo":969.9875,"cambio":1},{"isin":"IE00BFMXXD54","data":"2026-08-22","segno":"acquisto","quantita":275,"prezzo":89.84,"cambio":1},{"isin":"IE00B3XXRP09","data":"2026-08-22","segno":"acquisto","quantita":256,"prezzo":97.37,"cambio":1},{"isin":"IE00BLDGHT92","data":"2026-08-22","segno":"acquisto","quantita":130,"prezzo":151.38,"cambio":1},{"isin":"DE000VY3NBZ6","data":"2026-08-22","segno":"acquisto","quantita":1709,"prezzo":2.93582,"cambio":1},{"isin":"NLBNPIT3MRU4","data":"2026-08-22","segno":"acquisto","quantita":100,"prezzo":5.1195,"cambio":1},{"isin":"NLBNPIT37C90","data":"2026-08-22","segno":"acquisto","quantita":206,"prezzo":10.2583,"cambio":1},{"isin":"NLBNPIT3MA79","data":"2026-08-22","segno":"acquisto","quantita":38,"prezzo":73.06184,"cambio":1},{"isin":"XS3388190996","data":"2026-08-22","segno":"acquisto","quantita":254,"prezzo":9.86917,"cambio":1},{"isin":"CH1358858129","data":"2026-08-22","segno":"acquisto","quantita":20,"prezzo":1003.8975,"cambio":1},{"isin":"CH1336232371","data":"2026-08-22","segno":"acquisto","quantita":20,"prezzo":981.0775,"cambio":1},{"isin":"IT0006775073","data":"2026-08-22","segno":"acquisto","quantita":20,"prezzo":1006.0575,"cambio":1},{"isin":"DE000UR0A4S0","data":"2026-08-22","segno":"acquisto","quantita":200,"prezzo":100.45975,"cambio":1},{"isin":"IE00B579F325","data":"2026-08-22","segno":"acquisto","quantita":12,"prezzo":413.88916,"cambio":1},{"isin":"LU0290358497","data":"2026-08-22","segno":"acquisto","quantita":615,"prezzo":144.39596,"cambio":1},{"isin":"IE00B3VWN179","data":"2026-08-22","segno":"acquisto","quantita":115,"prezzo":110.58,"cambio":1},{"isin":"LU1287023185","data":"2026-08-22","segno":"acquisto","quantita":598,"prezzo":167.5,"cambio":1},{"isin":"IE000UWJUW87","data":"2026-08-22","segno":"acquisto","quantita":2750,"prezzo":8.8194,"cambio":1},{"isin":"IT0005436693","data":"2026-08-22","segno":"acquisto","quantita":30000,"prezzo":88.06,"cambio":1},{"isin":"BE0000351602","data":"2026-08-22","segno":"acquisto","quantita":7000,"prezzo":95.94,"cambio":1},{"isin":"AT0000A2VB47","data":"2026-08-22","segno":"acquisto","quantita":38000,"prezzo":93.8,"cambio":1},{"isin":"EU000A283859","data":"2026-08-22","segno":"acquisto","quantita":30000,"prezzo":88.46,"cambio":1},{"isin":"DE0001102523","data":"2026-08-22","segno":"acquisto","quantita":27000,"prezzo":94.73,"cambio":1},{"isin":"FR0014007L00","data":"2026-08-22","segno":"acquisto","quantita":30000,"prezzo":82.3,"cambio":1},{"isin":"XS1503043694","data":"2026-08-22","segno":"acquisto","quantita":30000,"prezzo":92.6,"cambio":1},{"isin":"XS2388495942","data":"2026-08-22","segno":"acquisto","quantita":33000,"prezzo":96.73242,"cambio":1}],"prezzi":{"US20451W1018":{"p":14.64,"prec":14.61,"seduta":"2026-08-28","precData":null,"fonte":"stockanalysis.com (stocks/cmps)"},"US8740391003":{"p":427.3,"prec":417.69,"seduta":"2026-08-28","precData":null,"fonte":"stockanalysis.com (stocks/tsm)"},"NL0010273215":{"p":1482.4,"prec":1486.4,"seduta":"2026-08-28","precData":null,"fonte":"stockanalysis.com (quote/ams/ASML)"},"IE00BFMXXD54":{"p":128.24,"prec":128.1,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"IE00B3XXRP09":{"p":125.91,"prec":125.68,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"IE00BLDGHT92":{"p":162.64,"prec":162.32,"seduta":"2026-08-28","precData":null,"fonte":"stockanalysis.com (quote/etr/UIQ4)"},"DE000VY3NBZ6":{"p":2.905,"prec":2.905,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"NLBNPIT3MRU4":{"p":2.905,"prec":2.905,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"NLBNPIT37C90":{"p":8.03,"prec":8.03,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"NLBNPIT3MA79":{"p":45.2,"prec":45.2,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"XS3388190996":{"p":0.875,"prec":0.9519,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"CH1358858129":{"p":1003.87,"prec":null,"seduta":"2026-08-28","precData":null,"fonte":"Borsa Italiana"},"CH1336232371":{"p":937.07,"prec":null,"seduta":"2026-08-28","precData":null,"fonte":"Borsa Italiana"},"IT0006775073":{"p":1007.7,"prec":null,"seduta":"2026-08-28","precData":null,"fonte":"Borsa Italiana"},"DE000UR0A4S0":{"p":98.37,"prec":null,"seduta":"2026-08-28","precData":null,"fonte":"Borsa Italiana"},"IE00B579F325":{"p":381,"prec":379.43,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"LU0290358497":{"p":150.0232,"prec":150.0225,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"IE00B3VWN179":{"p":108.45,"prec":108.41,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"LU1287023185":{"p":167.8,"prec":167.96,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"IE000UWJUW87":{"p":9.193,"prec":null,"seduta":"2026-08-27","precData":null,"fonte":"Borsa Italiana"},"IT0005436693":{"p":87.36,"prec":87.39,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"BE0000351602":{"p":96.9,"prec":null,"seduta":"2026-08-27","precData":null,"fonte":"Borsa Italiana"},"AT0000A2VB47":{"p":94.06,"prec":94.07,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"EU000A283859":{"p":88.41,"prec":88.57,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"DE0001102523":{"p":96.8,"prec":96.8,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"FR0014007L00":{"p":81.98,"prec":82,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"},"XS1503043694":{"p":92.12,"prec":null,"seduta":"2026-08-27","precData":null,"fonte":"Borsa Italiana"},"XS2388495942":{"p":99.261,"prec":99.408,"seduta":"2026-08-28","precData":"2026-08-27","fonte":"Borsa Italiana"}}};
+
+const CHIAVE = "portafoglio-mattino/correzioni";
+let correzioni = {};       // isin -> prezzo digitato dall'utente
+let ordina = { col: "valore", giu: true };
+let aperta = null;         // isin della riga espansa
+let inAttesaConferma = null;
+let bozze = {};            // isin -> testo digitato, per non perderlo a ogni ridisegno
+
+try { correzioni = JSON.parse(localStorage.getItem(CHIAVE) || "{}"); } catch { correzioni = {}; }
+
+/* ── Formattazione ───────────────────────────────────────────────────────── */
+const eur = (n, d = 0) => new Intl.NumberFormat("it-IT", { minimumFractionDigits: d, maximumFractionDigits: d }).format(n || 0);
+const segno = (n, d = 0) => (n >= 0 ? "+" : "−") + eur(Math.abs(n), d);
+const pct = (n, d = 2) => {
+  if (n == null) return "—";
+  const a = Math.abs(n);
+  // Arrotondare 0,003% a "0,00%" farebbe sembrare fermo un titolo che si è mosso.
+  if (a > 0 && a < 0.005) return (n > 0 ? "+" : "−") + "0,01%";
+  return (n >= 0 ? "+" : "−") + a.toFixed(d).replace(".", ",") + "%";
+};
+/** Decimali all'italiana: la virgola, non il punto. */
+const dec = (n, d) => (n == null ? "—" : n.toFixed(d).replace(".", ","));
+const cls = (n) => (n == null || Math.abs(n) < 0.005 ? "neutro" : n > 0 ? "pos" : "neg");
+const gg = (iso) => (iso ? new Date(iso + "T12:00:00").toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" }) : "—");
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+/* ── Formule (SPEC §5) ───────────────────────────────────────────────────── */
+
+/** §5.1 — le obbligazioni quotano in percentuale del nominale; USD convertito al cambio. */
+function valoreEur(s, prezzo, quantita, cambio) {
+  if (s.tipo === "Obbligazione") return prezzo * (quantita / 100);
+  if (s.valuta === "USD") return (prezzo * quantita) / cambio;
+  return prezzo * quantita;
+}
+function valoreMovimento(s, m) {
+  if (s.tipo === "Obbligazione") return m.prezzo * (m.quantita / 100);
+  if (s.valuta === "USD") return (m.prezzo * m.quantita) / m.cambio;
+  return m.prezzo * m.quantita;
+}
+
+/** §3.1 — quantità e carico si derivano dai movimenti, a costo medio ponderato. */
+function posizione(s, movimenti) {
+  const ord = movimenti.slice().sort((a, b) => a.data.localeCompare(b.data));
+  let quantita = 0, carico = 0;
+  for (const m of ord) {
+    if (m.segno === "acquisto") { quantita += m.quantita; carico += valoreMovimento(s, m); }
+    else { const medio = quantita > 0 ? carico / quantita : 0; quantita -= m.quantita; carico -= medio * m.quantita; }
+  }
+  if (quantita <= 0) return { quantita: Math.max(0, quantita), carico, pmc: null };
+  const acq = ord.filter((m) => m.segno === "acquisto");
+  const cambioMedio = acq.reduce((t, m) => t + m.cambio * m.quantita, 0) / (acq.reduce((t, m) => t + m.quantita, 0) || 1);
+  let pmc;
+  if (s.tipo === "Obbligazione") pmc = (carico / quantita) * 100;
+  else if (s.valuta === "USD") pmc = (carico * cambioMedio) / quantita;
+  else pmc = carico / quantita;
+  return { quantita, carico, pmc };
+}
+
+const anniA = (scadenza) => (new Date(scadenza).getTime() - Date.now()) / (365.25 * 86400000);
+
+/** §5.4 — YTM per bisezione, prezzo tel quel su 100 di nominale. */
+function ytm(prezzo, cedola, anni, freq) {
+  if (anni <= 0) return null;
+  const n = Math.max(1, Math.round(anni * freq)), c = cedola / freq;
+  const vp = (y) => { const r = y / freq; let s = 0; for (let i = 1; i <= n; i++) s += c / Math.pow(1 + r, i); return s + 100 / Math.pow(1 + r, n); };
+  let lo = -0.5, hi = 1;
+  for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; if (vp(m) > prezzo) lo = m; else hi = m; }
+  return ((lo + hi) / 2) * 100;
+}
+
+/** §5.5 — duration modificata. */
+function duration(prezzo, cedola, anni, freq) {
+  const y = ytm(prezzo, cedola, anni, freq);
+  if (y == null) return null;
+  const r = y / 100 / freq, n = Math.max(1, Math.round(anni * freq)), c = cedola / freq;
+  let vpTot = 0, pond = 0;
+  for (let i = 1; i <= n; i++) { const cf = i === n ? c + 100 : c; const vp = cf / Math.pow(1 + r, i); vpTot += vp; pond += (i / freq) * vp; }
+  return (pond / vpTot) / (1 + r);
+}
+
+/* ── Vista ───────────────────────────────────────────────────────────────── */
+function calcola() {
+  const cambio = DATI.cambioEurUsd;
+  const righe = DATI.strumenti.map((s) => {
+    const q = DATI.prezzi[s.isin] || {};
+    const corretto = correzioni[s.isin];
+    const prezzo = corretto != null ? corretto : (q.p != null ? q.p : null);
+    const pos = posizione(s, DATI.movimenti.filter((m) => m.isin === s.isin));
+    const valore = prezzo != null ? valoreEur(s, prezzo, pos.quantita, cambio) : 0;
+    // Una correzione a mano invalida il confronto con la chiusura pubblicata:
+    // il numero digitato non appartiene a quella seduta.
+    const prec = corretto != null ? null : (q.prec != null ? q.prec : null);
+    const valorePrec = prec != null ? valoreEur(s, prec, pos.quantita, cambio) : null;
+    return {
+      s, ...pos, prezzo, prec, valore, valorePrec,
+      seduta: q.seduta || null, precData: q.precData || null, fonte: q.fonte || null,
+      fonteP: q.p != null ? q.p : null, corretto: corretto != null,
+      dEur: valorePrec != null ? valore - valorePrec : 0,
+      dPct: valorePrec ? ((valore - valorePrec) / valorePrec) * 100 : null,
+      varCarico: pos.pmc && prezzo != null ? ((prezzo - pos.pmc) / pos.pmc) * 100 : null,
+    };
+  });
+
+  const totale = righe.reduce((t, r) => t + r.valore, 0);
+  const carico = righe.reduce((t, r) => t + r.carico, 0);
+  righe.forEach((r) => { r.peso = totale ? (r.valore / totale) * 100 : 0; });
+
+  // §5.2 — P&L di giornata solo sui titoli con una chiusura precedente vera.
+  const conPrec = righe.filter((r) => r.valorePrec != null);
+  const oggi = conPrec.reduce((t, r) => t + r.valore, 0);
+  const ieri = conPrec.reduce((t, r) => t + r.valorePrec, 0);
+  const pnlGiorno = conPrec.length && ieri ? { eur: oggi - ieri, pct: ((oggi - ieri) / ieri) * 100, copertura: conPrec.length } : null;
+  const basi = conPrec.map((r) => r.precData).filter(Boolean).sort();
+  const base = basi[basi.length - 1] || null;
+
+  const macro = {};
+  righe.forEach((r) => { macro[r.s.macro] = (macro[r.s.macro] || 0) + r.valore; });
+  const composizione = Object.entries(macro)
+    .map(([nome, v]) => ({ nome, valore: v, quota: totale ? (v / totale) * 100 : 0 }))
+    .sort((a, b) => b.valore - a.valore);
+
+  // §5.5 — duration media ponderata e sensibilità a +100bp sul solo obbligazionario.
+  const bond = righe.filter((r) => r.s.tipo === "Obbligazione" && r.prezzo != null && r.s.cedola != null && r.s.scadenza);
+  bond.forEach((r) => {
+    const anni = anniA(r.s.scadenza), f = r.s.frequenza_cedolare || 1;
+    r.ytm = ytm(r.prezzo, r.s.cedola, anni, f);
+    r.dur = duration(r.prezzo, r.s.cedola, anni, f);
+    r.anni = anni;
+  });
+  const valBond = bond.reduce((t, r) => t + r.valore, 0);
+  const durMedia = valBond ? bond.reduce((t, r) => t + (r.dur || 0) * r.valore, 0) / valBond : null;
+  const ytmMedio = valBond ? bond.reduce((t, r) => t + (r.ytm || 0) * r.valore, 0) / valBond : null;
+
+  return {
+    righe, totale, carico, pnlGiorno, base,
+    pnlTotale: { eur: totale - carico, pct: carico ? ((totale - carico) / carico) * 100 : 0 },
+    composizione, bond, valBond, durMedia, ytmMedio,
+    sensibilita: durMedia != null ? -durMedia * (valBond / 100) : null,
+  };
+}
+</script>
+
+<script>
+/* ═══ Disegno ═══════════════════════════════════════════════════════════════ */
+
+const $ = (id) => document.getElementById(id);
+const COLONNE = [
+  { k: "nome", t: "Titolo" }, { k: "prezzo", t: "Prezzo" }, { k: "dEur", t: "Oggi" },
+  { k: "valore", t: "Valore €" }, { k: "peso", t: "Peso" }, { k: "varCarico", t: "Dal carico" },
+];
+
+function rendiSintesi(v) {
+  const d = new Date(DATI.aggiornato);
+  $("sottotitolo").textContent =
+    `${DATI.strumenti.length} posizioni · prezzi del ${d.toLocaleDateString("it-IT", { day: "2-digit", month: "long" })} alle ` +
+    `${d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}`;
+
+  $("kTotale").textContent = eur(v.totale) + " €";
+  const q = v.righe.filter((r) => r.prezzo != null).length;
+  $("kTotaleSotto").textContent = `${q} titoli su ${DATI.strumenti.length} con un prezzo` +
+    (Object.keys(correzioni).length ? ` · ${Object.keys(correzioni).length} corretti da te` : "");
+
+  // La base può non essere ieri, se salti dei giorni: l'intestazione lo dice invece di lasciarlo intendere.
+  const giorni = v.base ? Math.round((Date.now() - new Date(v.base + "T12:00:00").getTime()) / 86400000) : 0;
+  $("kGiornoTit").textContent = !v.base || giorni <= 3 ? "P&L di oggi" : `Dalla chiusura del ${gg(v.base)}`;
+  const g = $("kGiorno"), gs = $("kGiornoSotto");
+  if (!v.pnlGiorno) {
+    g.textContent = "—"; g.className = "cifra n neutro";
+    gs.textContent = "nessuna chiusura precedente con cui confrontare";
+  } else {
+    g.textContent = segno(v.pnlGiorno.eur) + " €";
+    g.className = "cifra n " + cls(v.pnlGiorno.eur);
+    const fuori = DATI.strumenti.length - v.pnlGiorno.copertura;
+    gs.innerHTML = `<span class="${cls(v.pnlGiorno.eur)}">${pct(v.pnlGiorno.pct)}</span> · su ${v.pnlGiorno.copertura}/${DATI.strumenti.length} titoli` +
+      (v.base ? `, rispetto al ${gg(v.base)}` : "") +
+      (fuori > 0 ? `<br>${fuori} non ${fuori === 1 ? "ha" : "hanno"} ancora scambiato oggi` : "");
+  }
+
+  $("kTot").textContent = segno(v.pnlTotale.eur) + " €";
+  $("kTot").className = "cifra n " + cls(v.pnlTotale.eur);
+  $("kTotSotto").innerHTML = `<span class="${cls(v.pnlTotale.pct)}">${pct(v.pnlTotale.pct)}</span> · carico ${eur(v.carico)} €`;
+
+  $("kFx").textContent = dec(DATI.cambioEurUsd, 4);
+  const inUsd = v.righe.filter((r) => r.s.valuta === "USD").reduce((t, r) => t + r.valore, 0);
+  $("kFxSotto").textContent = `${eur(inUsd)} € esposti al dollaro (${dec(v.totale ? (inUsd / v.totale) * 100 : 0, 1)}%)`;
+}
+
+/**
+ * Istogramma verticale sullo zero. Il verso della barra è una seconda codifica
+ * oltre al colore: verde e rosso hanno separazione 6,4 per la deuteranopia,
+ * troppo poca da soli — sopra o sotto la linea dello zero, no.
+ */
+function rendiIstogramma(v) {
+  const dati = v.righe.filter((r) => r.valorePrec != null).sort((a, b) => b.dEur - a.dEur);
+  if (!dati.length) {
+    $("isto").innerHTML = `<p class="vuoto">Nessun titolo ha una chiusura precedente con cui confrontarsi. Chiedi un aggiornamento dei prezzi.</p>`;
+    $("estremi").innerHTML = ""; return;
+  }
+  const H = 190;
+  const su = Math.max(0, ...dati.map((d) => d.dEur));
+  const giu = Math.max(0, ...dati.map((d) => -d.dEur));
+  const ampiezza = su + giu || 1;
+  const yZero = (su / ampiezza) * H;
+  const alt = (x) => (Math.abs(x) / ampiezza) * H;
+
+  const tacche = [{ y: 0, v: su }, { y: yZero, v: 0 }, { y: H, v: -giu }]
+    .filter((t, i, a) => a.findIndex((o) => Math.abs(o.y - t.y) < 8) === i);
+
+  const colonne = dati.map((d, i) => {
+    const h = alt(d.dEur), positivo = d.dEur >= 0;
+    const stile = positivo
+      ? `bottom:${H - yZero}px; height:${Math.max(h, d.dEur === 0 ? 0 : 1.5)}px; background:var(--pos)`
+      : `top:${yZero}px; height:${Math.max(h, 1.5)}px; background:var(--neg)`;
+    const spenta = Math.abs(d.dEur) < 0.005 ? " spenta" : "";
+    return `<button class="col${spenta}" type="button" data-i="${i}"
+      aria-label="${esc(d.s.nome)}: ${segno(d.dEur, 2)} euro, ${pct(d.dPct)}">
+      <span class="barra${positivo ? "" : " giu"}" style="${stile}"></span></button>`;
+  }).join("");
+
+  $("isto").innerHTML =
+    `<div class="isto">
+       <div class="assey">${tacche.map((t) => `<span style="top:${t.y}px">${t.v === 0 ? "0" : segno(t.v)} €</span>`).join("")}</div>
+       <div class="colonne">
+         ${tacche.map((t) => `<div class="${t.v === 0 ? "zero" : "griglialinea"}" style="top:${t.y}px"></div>`).join("")}
+         ${colonne}
+       </div>
+     </div>
+     <div class="legenda">
+       <span><i style="background:var(--pos)"></i>sopra lo zero: guadagno di giornata</span>
+       <span><i style="background:var(--neg)"></i>sotto lo zero: perdita di giornata</span>
+     </div>`;
+  $("isto")._dati = dati;
+
+  const alto = dati[0], basso = dati[dati.length - 1];
+  const somma = dati.reduce((t, d) => t + d.dEur, 0);
+  $("estremi").innerHTML =
+    (alto && alto.dEur > 0 ? `<div>Sale di più: <strong>${esc(alto.s.nome)}</strong> <span class="pos n">${segno(alto.dEur)} €</span> <span class="pos n">${pct(alto.dPct)}</span></div>` : "") +
+    (basso && basso.dEur < 0 ? `<div>Scende di più: <strong>${esc(basso.s.nome)}</strong> <span class="neg n">${segno(basso.dEur)} €</span> <span class="neg n">${pct(basso.dPct)}</span></div>` : "") +
+    `<div style="color:var(--faint)">Le ${dati.length} barre sommano a <span class="n">${segno(somma)} €</span>, cioè il P&amp;L di oggi qui sopra.</div>`;
+}
+
+/**
+ * Composizione: barre ordinate con etichetta diritta e una sola tinta.
+ * Quattro tinte categoriche distinte non superavano il test di separazione per
+ * daltonismo nel tema scuro; qui l'identità la porta la parola, non il colore.
+ */
+function rendiComposizione(v) {
+  const max = Math.max(...v.composizione.map((c) => c.quota), 1);
+  $("comp").innerHTML = v.composizione.map((c) => `
+    <div class="compRiga">
+      <span class="et">${esc(c.nome)}</span>
+      <span class="vals n">${dec(c.quota, 1)}% · ${eur(c.valore)} €</span>
+      <div class="traccia"><div class="riemp" style="width:${(c.quota / max) * 100}%"></div></div>
+    </div>`).join("");
+}
+
+function rendiBond(v) {
+  if (!v.bond.length) { $("bond").innerHTML = `<p class="vuoto">Nessuna obbligazione con cedola e scadenza note.</p>`; return; }
+  $("bond").innerHTML = `
+    <div class="pannello" style="padding:0; gap:14px">
+      <div class="voce"><span class="e">Rendimento medio</span><span class="v">${dec(v.ytmMedio, 2)}%</span></div>
+      <div class="voce"><span class="e">Duration media</span><span class="v">${dec(v.durMedia, 2)} anni</span></div>
+      <div class="voce"><span class="e">Valore</span><span class="v">${eur(v.valBond)} €</span></div>
+      <div class="voce"><span class="e">Se i tassi +1%</span><span class="v neg">${segno(v.sensibilita)} €</span></div>
+    </div>
+    <p style="margin:14px 0 0; font:500 11.5px/1.5 var(--ui); color:var(--faint)">
+      Su ${v.bond.length} titoli di Stato. La sensibilità è la perdita attesa se i tassi salissero di un punto: duration media × valore ÷ 100.
+    </p>`;
+}
+
+function rendiTabella(v) {
+  $("capo").innerHTML = COLONNE.map((c) => {
+    const attiva = ordina.col === c.k;
+    return `<th${c.k === "nome" ? "" : ""}><button type="button" data-col="${c.k}">${c.t}<span class="frec">${attiva ? (ordina.giu ? "▼" : "▲") : ""}</span></button></th>`;
+  }).join("");
+
+  const righe = v.righe.slice().sort((a, b) => {
+    let x, y;
+    if (ordina.col === "nome") { x = a.s.nome; y = b.s.nome; return ordina.giu ? y.localeCompare(x) : x.localeCompare(y); }
+    x = a[ordina.col] == null ? -Infinity : a[ordina.col];
+    y = b[ordina.col] == null ? -Infinity : b[ordina.col];
+    return ordina.giu ? y - x : x - y;
+  });
+
+  $("corpo").innerHTML = righe.map((r) => {
+    const dett = aperta === r.s.isin;
+    return `<tr class="riga${dett ? " aperta" : ""}" data-isin="${r.s.isin}" tabindex="0" role="button" aria-expanded="${dett}">
+        <td>
+          <div class="tit">${esc(r.s.nome)}</div>
+          <div class="sott"><span class="tag">${esc(r.s.classe)}</span>${esc(r.s.isin)}${r.corretto ? ' · <span style="color:var(--warn)">prezzo tuo</span>' : ""}</div>
+        </td>
+        <td class="n">${r.prezzo == null ? "—" : eur(r.prezzo, r.prezzo < 20 ? 4 : 2)}</td>
+        <td class="n ${cls(r.dPct)}">${r.valorePrec == null ? "—" : segno(r.dEur) + " €"}</td>
+        <td class="n">${eur(r.valore)}</td>
+        <td class="n" style="color:var(--mut)">${dec(r.peso, 1)}%</td>
+        <td class="n ${cls(r.varCarico)}">${pct(r.varCarico)}</td>
+      </tr>` + (dett ? rendiDettaglio(r) : "");
+  }).join("");
+}
+
+function rendiDettaglio(r) {
+  const voce = (e, v2) => `<div class="voce"><span class="e">${e}</span><span class="v">${v2}</span></div>`;
+  const cifre = r.prezzo != null && r.prezzo < 20 ? 4 : 2;
+  const avviso = inAttesaConferma && inAttesaConferma.isin === r.s.isin
+    ? `<div class="avviso">Il prezzo che hai scritto si scosta del ${dec(inAttesaConferma.scarto, 0)}% da ${eur(r.fonteP, cifre)}.
+       Di solito è un errore di battitura. Premi ancora «Applica» se è davvero corretto.</div>` : "";
+  return `<tr class="dettaglio"><td colspan="${COLONNE.length}"><div class="pannello">
+      ${voce("Quantità", eur(r.quantita, r.s.tipo === "Obbligazione" ? 0 : 0))}
+      ${voce("Prezzo di carico", r.pmc == null ? "—" : eur(r.pmc, cifre))}
+      ${voce("Carico", eur(r.carico) + " €")}
+      ${voce("Chiusura precedente", r.prec == null ? "—" : eur(r.prec, cifre) + (r.precData ? ` <span style="color:var(--faint);font-size:11px">${gg(r.precData)}</span>` : ""))}
+      ${voce("Seduta del prezzo", r.seduta ? gg(r.seduta) : "—")}
+      ${voce("Valuta", r.s.valuta)}
+      ${r.ytm != null ? voce("Rendimento a scadenza", dec(r.ytm, 2) + "%") : ""}
+      ${r.dur != null ? voce("Duration modificata", dec(r.dur, 2) + " anni") : ""}
+      ${r.s.scadenza ? voce("Scadenza", new Date(r.s.scadenza).toLocaleDateString("it-IT")) : ""}
+      ${r.s.sottostante ? voce("Sottostante", esc(r.s.sottostante)) : ""}
+      ${voce("Fonte", esc(r.fonte || "—"))}
+      ${avviso}
+      <div class="modPrezzo">
+        <div>
+          <label for="in-${r.s.isin}">Correggi il prezzo</label>
+          <input id="in-${r.s.isin}" type="text" inputmode="decimal" autocomplete="off"
+            value="${esc(bozze[r.s.isin] != null ? bozze[r.s.isin] : (r.prezzo == null ? "" : String(r.prezzo).replace(".", ",")))}">
+        </div>
+        <button class="btn primario" type="button" data-applica="${r.s.isin}">Applica</button>
+        ${r.corretto ? `<button class="btn" type="button" data-ripristina="${r.s.isin}">Torna a ${eur(r.fonteP, cifre)}</button>` : ""}
+      </div>
+    </div></td></tr>`;
+}
+
+function rendiStato() {
+  const n = Object.keys(correzioni).length;
+  $("msg").textContent = n
+    ? `${n} ${n === 1 ? "prezzo corretto" : "prezzi corretti"} da te, salvat${n === 1 ? "o" : "i"} in questo browser.`
+    : "I prezzi sono quelli scaricati al momento della creazione. Correggine uno toccando la sua riga.";
+  $("btnAzzera").hidden = n === 0;
+}
+
+function disegna() {
+  const v = calcola();
+  rendiSintesi(v); rendiIstogramma(v); rendiComposizione(v); rendiBond(v); rendiTabella(v); rendiStato();
+  return v;
+}
+</script>
+
+<script>
+/* ═══ Interazione ═══════════════════════════════════════════════════════════ */
+
+/* Tema: la scelta esplicita vince sul sistema, in entrambe le direzioni. */
+const TEMA = "portafoglio-mattino/tema";
+try { const t = localStorage.getItem(TEMA); if (t) document.documentElement.setAttribute("data-theme", t); } catch {}
+$("btnTema").addEventListener("click", () => {
+  const attuale = document.documentElement.getAttribute("data-theme");
+  const scuroDiSistema = matchMedia("(prefers-color-scheme: dark)").matches;
+  const prossimo = attuale ? (attuale === "dark" ? "light" : "dark") : (scuroDiSistema ? "light" : "dark");
+  document.documentElement.setAttribute("data-theme", prossimo);
+  try { localStorage.setItem(TEMA, prossimo); } catch {}
+});
+
+/* Ordinamento */
+$("capo").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-col]");
+  if (!b) return;
+  const c = b.dataset.col;
+  if (ordina.col === c) ordina.giu = !ordina.giu;
+  else ordina = { col: c, giu: c !== "nome" };
+  disegna();
+});
+
+/* Riga: apre e chiude il dettaglio */
+$("corpo").addEventListener("click", (e) => {
+  if (e.target.closest("button, input")) return;
+  const tr = e.target.closest("tr.riga");
+  if (!tr) return;
+  aperta = aperta === tr.dataset.isin ? null : tr.dataset.isin;
+  inAttesaConferma = null;
+  disegna();
+});
+$("corpo").addEventListener("keydown", (e) => {
+  const tr = e.target.closest("tr.riga");
+  if (!tr || (e.key !== "Enter" && e.key !== " ")) return;
+  e.preventDefault();
+  aperta = aperta === tr.dataset.isin ? null : tr.dataset.isin;
+  inAttesaConferma = null;
+  disegna();
+});
+
+/* Correzione di un prezzo, con la quarantena della spec §5.7 */
+const SOGLIA = 0.6;
+$("corpo").addEventListener("click", (e) => {
+  const app = e.target.closest("button[data-applica]");
+  const rip = e.target.closest("button[data-ripristina]");
+  if (rip) {
+    delete correzioni[rip.dataset.ripristina];
+    delete bozze[rip.dataset.ripristina];
+    salvaCorrezioni(); inAttesaConferma = null; disegna(); return;
+  }
+  if (!app) return;
+  const isin = app.dataset.applica;
+  const grezzo = ($("in-" + isin).value || "").trim().replace(/\./g, "").replace(",", ".");
+  const n = Number(grezzo);
+  if (!grezzo || !Number.isFinite(n) || n <= 0) {
+    $("in-" + isin).focus();
+    $("msg").textContent = "Scrivi un numero maggiore di zero, per esempio 87,39.";
+    return;
+  }
+  const rif = (DATI.prezzi[isin] || {}).p;
+  const scarto = rif ? Math.abs((n - rif) / rif) * 100 : 0;
+  const giaChiesto = inAttesaConferma && inAttesaConferma.isin === isin;
+  if (rif && scarto > SOGLIA * 100 && !giaChiesto) {
+    inAttesaConferma = { isin, scarto }; disegna();
+    return;
+  }
+  correzioni[isin] = n;
+  delete bozze[isin];
+  inAttesaConferma = null;
+  salvaCorrezioni();
+  disegna();
+});
+
+/* La tabella si ridisegna a ogni conferma: senza questo, l'avviso di quarantena
+   cancellerebbe il numero appena scritto e la seconda pressione applicherebbe
+   il prezzo vecchio. */
+$("corpo").addEventListener("input", (e) => {
+  const i = e.target.closest("input[id^='in-']");
+  if (i) bozze[i.id.slice(3)] = i.value;
+});
+
+function salvaCorrezioni() {
+  try { localStorage.setItem(CHIAVE, JSON.stringify(correzioni)); } catch {}
+}
+
+$("btnAzzera").addEventListener("click", () => {
+  correzioni = {}; bozze = {}; inAttesaConferma = null; salvaCorrezioni(); disegna();
+});
+
+/* Suggerimento sull'istogramma: mouse, tocco e tastiera */
+const tip = $("tip");
+function mostraTip(i, x, y) {
+  const dati = $("isto")._dati;
+  const d = dati && dati[i];
+  if (!d) return;
+  tip.innerHTML =
+    `<div class="t">${esc(d.s.nome)}</div>
+     <div class="r"><span class="n ${cls(d.dEur)}" style="font-size:14px;font-weight:700">${segno(d.dEur, 2)} €</span>
+       <span class="n ${cls(d.dPct)}" style="font-size:11.5px">${pct(d.dPct)}</span></div>
+     <div class="p">${eur(d.prezzo, d.prezzo < 20 ? 4 : 2)} contro ${eur(d.prec, d.prec < 20 ? 4 : 2)} · peso ${dec(d.peso, 1)}%</div>`;
+  tip.classList.add("mostra");
+  const r = tip.getBoundingClientRect();
+  tip.style.left = Math.min(Math.max(8, x - r.width / 2), innerWidth - r.width - 8) + "px";
+  tip.style.top = (y - r.height - 12 < 8 ? y + 18 : y - r.height - 12) + "px";
+}
+const nascondiTip = () => tip.classList.remove("mostra");
+
+$("isto").addEventListener("pointermove", (e) => {
+  const c = e.target.closest(".col");
+  if (!c) return nascondiTip();
+  mostraTip(+c.dataset.i, e.clientX, e.clientY);
+});
+$("isto").addEventListener("pointerleave", nascondiTip);
+$("isto").addEventListener("focusin", (e) => {
+  const c = e.target.closest(".col");
+  if (!c) return;
+  const r = c.getBoundingClientRect();
+  mostraTip(+c.dataset.i, r.left + r.width / 2, r.top);
+});
+$("isto").addEventListener("focusout", nascondiTip);
+addEventListener("scroll", nascondiTip, { passive: true });
+
+/* Esportazione: disponibile solo se il visualizzatore concede la capability. */
+const usaCapability = (nome) =>
+  typeof claude !== "undefined" && claude && typeof claude.use === "function"
+    ? claude.use(nome).catch(() => null)
+    : Promise.resolve(null);
+
+usaCapability("downloads").then((downloads) => {
+  if (!downloads) return;                       // niente capability: niente pulsante
+  const b = $("btnBackup");
+  b.hidden = false;
+  b.textContent = "Esporta in CSV";
+  b.addEventListener("click", async () => {
+    const v = calcola();
+    const campi = ["ISIN", "Nome", "Classe", "Macro", "Valuta", "Quantita", "PrezzoCarico", "Prezzo", "ChiusuraPrecedente", "ValoreEur", "PesoPct", "VarGiornoEur", "VarCaricoPct"];
+    const num = (x, d) => (x == null ? "" : x.toFixed(d).replace(".", ","));
+    const righe = v.righe.map((r) => [
+      r.s.isin, r.s.nome, r.s.classe, r.s.macro, r.s.valuta,
+      num(r.quantita, 0), num(r.pmc, 4), num(r.prezzo, 4), num(r.prec, 4),
+      num(r.valore, 2), num(r.peso, 2), r.valorePrec == null ? "" : num(r.dEur, 2), num(r.varCarico, 2),
+    ].map((c) => (/[";\n]/.test(String(c)) ? '"' + String(c).replace(/"/g, '""') + '"' : c)).join(";"));
+    // Punto e virgola e BOM: è così che Excel in italiano apre il file senza chiedere nulla.
+    const csv = "﻿" + [campi.join(";"), ...righe].join("\r\n");
+    b.disabled = true;
+    try {
+      await downloads.save({ filename: `portafoglio-${DATI.aggiornato.slice(0, 10)}.csv`, data: csv });
+      $("msg").textContent = "File salvato.";
+    } catch (err) {
+      const codice = err && err.code;
+      $("msg").textContent = codice === "declined" ? "Esportazione annullata."
+        : codice === "rate_limited" ? "Una richiesta è già aperta: riprova fra qualche secondo."
+        : "Non è stato possibile salvare il file qui.";
+      if (codice === "unavailable" || codice === "not_granted" || codice === "capability_removed") b.hidden = true;
+    } finally { b.disabled = false; }
+  });
+});
+
+disegna();
+</script>
