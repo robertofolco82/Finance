@@ -1,1 +1,13 @@
-{}
+{
+  "US20451W1018": [
+    {
+      "isin": "US20451W1018",
+      "ts": 1787874397851,
+      "rating": "Strong Buy",
+      "pt_medio": 23.75,
+      "buy": null,
+      "hold": null,
+      "sell": null
+    }
+  ]
+}

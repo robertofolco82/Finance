@@ -1,1 +1,18 @@
-{}
+{
+  "US20451W1018": {
+    "isin": "US20451W1018",
+    "sotto": "Compass Pathways (CMPS)",
+    "rating": "Strong Buy",
+    "numero_analisti": 16,
+    "pt_medio": 23.75,
+    "pt_mediano": 21,
+    "pt_max": 65,
+    "pt_min": 13,
+    "valuta": "USD",
+    "upside_medio": 62.23,
+    "upside_max": 343.99,
+    "upside_min": -11.2,
+    "data_rilevazione": "2026-08-27",
+    "fonte": "stockanalysis.com"
+  }
+}
