@@ -55,9 +55,11 @@ export interface Movimento {
 
 export interface PrezzoRecord {
   isin: string;
-  data: string; // ISO date
+  data: string; // ISO date: la SEDUTA del prezzo, non il momento del refresh
   chiusura: number;
   chiusura_precedente: number | null;
+  /** Seduta a cui appartiene chiusura_precedente, quando la fonte la dichiara. */
+  data_chiusura_precedente?: string | null;
   valuta: string;
   fonte: string;
   raccolto_il: string; // ISO timestamp

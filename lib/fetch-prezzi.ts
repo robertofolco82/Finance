@@ -48,6 +48,8 @@ export interface PrezzoRaccolto {
   fonte: string;
   /** Seduta a cui appartiene il prezzo, se la fonte la dichiara. */
   data_sessione?: string | null;
+  /** Seduta a cui appartiene la chiusura precedente, se la fonte la dichiara. */
+  data_chiusura_precedente?: string | null;
 }
 
 interface RisultatoLotto {
@@ -78,6 +80,7 @@ async function elaboraLotto(lotto: Strumento[]): Promise<RisultatoLotto> {
         chiusura_precedente: e.chiusura_precedente,
         fonte: e.fonte,
         data_sessione: e.data_sessione ?? null,
+        data_chiusura_precedente: e.data_chiusura_precedente ?? null,
       });
     } else {
       falliti.push(e.isin);
@@ -157,6 +160,7 @@ export async function salvaRaccolti(
         data: r.data_sessione ?? oggi,
         chiusura: r.prezzo,
         chiusura_precedente: r.chiusura_precedente ?? null,
+        data_chiusura_precedente: r.data_chiusura_precedente ?? null,
         valuta: strumento.valuta,
         fonte: r.fonte,
         raccolto_il: new Date().toISOString(),

@@ -36,13 +36,31 @@ Decisioni chiave (motivate in `SPEC.md` §2, §6, §13):
 - **Fonti dirette, non ricerca via LLM.** La ricerca web impiegava oltre 35 secondi
   per 5 titoli e costava a ogni giro; le fonti dirette rispondono in frazioni di
   secondo, gratis, e non possono "leggere male" un numero — l'errore da 24× che aveva
-  falsato il prototipo nasceva proprio lì. Copertura verificata sui 28 ISIN reali: **Borsa Italiana 19** (titoli di Stato su MOT, certificati SeDeX, ETF
+  falsato il prototipo nasceva proprio lì. Copertura verificata sui 28 ISIN reali:
+  **Borsa Italiana 24** (titoli di Stato su MOT, certificati SeDeX ed EuroTLX, ETF
   ed ETC su ETFplus), **stockanalysis.com 4** (azioni estere e l'ETF quotato solo
-  su XETRA), **BCE** per il cambio EUR/USD. I **5 rimanenti** — i 4 strutturati
-  EuroTLX e l'ETP SK Hynix — non sono quotati da nessuna fonte gratuita e hanno un
-  campo di inserimento manuale nella scheda (§6.3). Resta la quarantena
-  obbligatoria sopra il 60% di scostamento dall'ultimo prezzo *scaricato*,
-  applicata anche ai prezzi inseriti a mano.
+  su XETRA), **BCE** per il cambio EUR/USD — 28 su 28 in automatico. Resta il campo
+  di inserimento manuale nella scheda (§6.3) per quando una fonte si rompe, e la
+  quarantena obbligatoria sopra il 60% di scostamento dall'ultimo prezzo
+  *scaricato*, applicata anche ai prezzi inseriti a mano.
+- **P&L di giornata = ultimo contratto contro chiusura precedente**, i due numeri
+  presi dalla stessa scheda nello stesso momento. Il campo da leggere è
+  l'**ultimo contratto** in cima alla pagina (con la sua ora: "28/08/26 9.24.54"),
+  non il "Prezzo di riferimento", che è la **chiusura della seduta precedente** —
+  la scheda lo dichiara nel campo "Data di riferimento" accanto. Scambiarli
+  significa confrontare la chiusura di ieri con la chiusura di ieri, e ottenere
+  sempre zero. A fine giornata la borsa ricalcola il riferimento e diventa la
+  chiusura di oggi: il caso si riconosce dalle due date, e allora la chiusura
+  precedente si ricava invertendo la variazione % dichiarata.
+  Un titolo che **oggi non ha ancora scambiato** non ha un movimento di giornata:
+  la chiusura precedente si cerca nello storico locale, ma solo se appartiene a
+  una seduta contigua (fino a 4 giorni di calendario, per coprire fine settimana e
+  festività). Oltre, il confronto sarebbe una deriva di più giorni spacciata per
+  movimento di oggi — su un certificato illiquido valeva 1.228 € di P&L inventato —
+  quindi il titolo viene escluso e la dashboard scrive quanti sono ("su 21/28
+  titoli, 7 non hanno ancora scambiato oggi"). L'istogramma "chi ha mosso il
+  totale" usa la stessa base, così le barre sommano esattamente al P&L mostrato
+  sopra.
 - **Nessun automatismo.** Ogni aggiornamento parte da un tuo clic. Non c'è cron: se in
   futuro ne volessi uno, va aggiunto a `vercel.json` con un endpoint che orchestri i
   lotti (il limite di 60s vale anche lì, dove non c'è un browser a spezzarli).

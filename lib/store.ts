@@ -158,10 +158,20 @@ export function ultimoPrezzo(prezzi: PrezzoRecord[], isin: string): PrezzoRecord
 }
 
 /**
+ * Quanti giorni di calendario possono separare due sedute consecutive: 3 per il
+ * fine settimana, 4 con una festività attaccata. Oltre, il confronto non è più
+ * "ieri contro oggi".
+ */
+const FINESTRA_SEDUTA_PRECEDENTE_GG = 4;
+
+/**
  * Chiusura precedente effettiva per il P&L giornaliero (§5.2).
  *
- * Prima sceglie quella dichiarata dalla fonte (la espone solo stockanalysis.com);
- * altrimenti ricade sull'ultimo prezzo registrato in una data ANTERIORE — che è
+ * Prima sceglie quella dichiarata dalla fonte — che è il caso normale: la scheda
+ * pubblica il prezzo dell'ultimo contratto E la chiusura della seduta precedente,
+ * cioè esattamente i due termini della formula. Solo se la fonte non la dichiara
+ * (strumenti che oggi non hanno scambiato) si ricade sull'ultimo prezzo
+ * registrato in una data ANTERIORE — che è
  * letteralmente la chiusura di una seduta precedente, non un valore inventato.
  * Restituisce anche la data di riferimento, perché la UI deve poter dire rispetto
  * a quando sta misurando invece di lasciarlo intendere.
@@ -173,9 +183,17 @@ export function chiusuraPrecedente(
   const dello = prezzi.filter((p) => p.isin === isin).sort((a, b) => a.data.localeCompare(b.data));
   const ultimo = dello[dello.length - 1];
   if (!ultimo) return null;
-  if (ultimo.chiusura_precedente != null) return { valore: ultimo.chiusura_precedente, data: null };
+  if (ultimo.chiusura_precedente != null) {
+    return { valore: ultimo.chiusura_precedente, data: ultimo.data_chiusura_precedente ?? null };
+  }
   const anteriore = [...dello].reverse().find((p) => p.data < ultimo.data);
-  return anteriore ? { valore: anteriore.chiusura, data: anteriore.data } : null;
+  if (!anteriore) return null;
+  const stacco = (Date.parse(ultimo.data) - Date.parse(anteriore.data)) / 86_400_000;
+  // Oltre la finestra non è più la seduta precedente ma una deriva di più giorni:
+  // spacciarla per movimento di oggi gonfia il P&L giornaliero di variazioni
+  // accumulate in una settimana. Meglio escludere il titolo e dichiarare la
+  // copertura ridotta, che è ciò che la scheda mostra sotto il numero.
+  return stacco <= FINESTRA_SEDUTA_PRECEDENTE_GG ? { valore: anteriore.chiusura, data: anteriore.data } : null;
 }
 
 /** Cambio EUR/USD più recente, dalla pseudo-riga "EURUSD" nello storico prezzi. */

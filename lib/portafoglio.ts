@@ -151,9 +151,23 @@ export async function costruisciVista(): Promise<VistaPortafoglio> {
     .map(([macro, valore_eur]) => ({ macro, valore_eur, quota_pct: totale_eur ? (valore_eur / totale_eur) * 100 : 0 }))
     .sort((a, b) => b.valore_eur - a.valore_eur);
 
+  // Base dell'attribuzione: il valore che ogni posizione aveva alla chiusura
+  // precedente. Così le barre sommano al P&L di giornata mostrato in alto.
+  // Solo se nessun titolo ha una chiusura precedente si ripiega sullo snapshot,
+  // che è un confronto fra due refresh e non fra due sedute.
+  const valoriAllaChiusura = righeBase
+    .filter((r) => r.chiusura_precedente != null)
+    .map((r) => ({
+      isin: r.strumento.isin,
+      valore_eur: valoreEur(r.strumento, r.chiusura_precedente as number, r.pos.quantita, cambio),
+    }));
   const attrib = attribuzione(
     righe.map((r) => ({ isin: r.strumento.isin, nome: r.strumento.nome, valore_eur: r.valore_eur })),
-    snapPrec ? snapPrec.righe.map((x) => ({ isin: x.isin, valore_eur: x.valore_eur })) : null
+    valoriAllaChiusura.length > 0
+      ? valoriAllaChiusura
+      : snapPrec
+        ? snapPrec.righe.map((x) => ({ isin: x.isin, valore_eur: x.valore_eur }))
+        : null
   );
 
   return {

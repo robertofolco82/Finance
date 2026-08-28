@@ -16,7 +16,9 @@ interface Punto {
 
 /**
  * §5.6 — chi ha mosso il totale. Istogramma verticale con base sullo zero:
- * l'altezza è la variazione in euro, il verso distingue guadagno da perdita.
+ * l'altezza è la variazione in euro dalla chiusura precedente, il verso distingue
+ * guadagno da perdita. Le barre sommano al P&L di giornata mostrato in alto: qui
+ * si vede da chi arriva.
  *
  * La direzione della barra è una seconda codifica oltre al colore: verde e rosso
  * hanno una separazione insufficiente per la deuteranopia (ΔE 6,4), quindi da soli
@@ -46,7 +48,8 @@ export function Attribuzione({ righe, totale }: { righe: RigaAttribuzione[]; tot
       <Card>
         <Label>Chi ha mosso il totale</Label>
         <div style={{ marginTop: 10, font: `400 13px/1.6 ${UI}`, color: T.mut }}>
-          Ancora nessuno storico da confrontare. Compare qui a partire dal secondo &quot;Aggiorna prezzi&quot;.
+          Ancora nessuna chiusura precedente con cui confrontare. Compare al primo &quot;Aggiorna prezzi&quot; a
+          mercato aperto.
         </div>
       </Card>
     );
@@ -60,7 +63,7 @@ export function Attribuzione({ righe, totale }: { righe: RigaAttribuzione[]; tot
     <Card>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
         <Label>Chi ha mosso il totale</Label>
-        <span style={{ font: `400 11px ${UI}`, color: T.faint }}>variazione in € dall&apos;ultimo aggiornamento</span>
+        <span style={{ font: `400 11px ${UI}`, color: T.faint }}>variazione in € dalla chiusura precedente</span>
       </div>
 
       <div style={{ height: 168, marginTop: 12, marginLeft: -10 }}>

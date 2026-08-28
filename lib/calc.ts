@@ -194,14 +194,19 @@ export interface RigaAttribuzione {
 }
 
 /**
- * Attribuzione (§5.6): delta di ogni posizione rispetto allo snapshot precedente.
- * Un titolo assente nello snapshot precedente (nuova posizione) ha dPct null.
+ * Attribuzione (§5.6): quanto ha spostato il totale ogni singola posizione.
+ *
+ * La base di confronto è il valore della posizione alla chiusura precedente,
+ * così la somma delle barre è esattamente il P&L di giornata mostrato in alto:
+ * il grafico scompone quel numero invece di raccontare un'altra storia. Se una
+ * posizione non ha un valore di confronto (nessun prezzo precedente noto) il suo
+ * dPct è null e la barra è a zero.
  */
 export function attribuzione(
   righeAttuali: { isin: string; nome: string; valore_eur: number }[],
-  snapshotPrecedente: { isin: string; valore_eur: number }[] | null
+  valoriPrecedenti: { isin: string; valore_eur: number }[] | null
 ): RigaAttribuzione[] {
-  const mappa = new Map((snapshotPrecedente ?? []).map((r) => [r.isin, r.valore_eur]));
+  const mappa = new Map((valoriPrecedenti ?? []).map((r) => [r.isin, r.valore_eur]));
   return righeAttuali.map((r) => {
     const prec = mappa.get(r.isin);
     const dEur = prec != null ? r.valore_eur - prec : 0;

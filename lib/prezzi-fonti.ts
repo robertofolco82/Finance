@@ -15,6 +15,13 @@
  *
  * Ogni prezzo estratto passa un controllo di plausibilità prima di essere
  * restituito: meglio un buco dichiarato che un numero sbagliato nei totali (§5.7).
+ *
+ * ATTENZIONE al campo giusto. Su Borsa Italiana "Prezzo di riferimento" NON è il
+ * prezzo di adesso: è la chiusura dell'ultima seduta conclusa (la scheda lo dice
+ * esplicitamente nel campo "Data di riferimento"). Il prezzo di adesso è quello
+ * dell'ULTIMO CONTRATTO, in cima alla scheda, insieme alla variazione % e all'ora.
+ * Leggere il riferimento al posto dell'ultimo contratto significa confrontare la
+ * chiusura di ieri con la chiusura di ieri: P&L giornaliero sempre nullo.
  */
 
 import type { Strumento } from "./types";
@@ -35,6 +42,8 @@ export interface EsitoPrezzo {
    * il bottone.
    */
   data_sessione?: string | null;
+  /** Seduta della chiusura precedente, quando la fonte la dichiara. */
+  data_chiusura_precedente?: string | null;
   errore?: string;
 }
 
@@ -53,6 +62,28 @@ export function numeroItaliano(testo: string): number | null {
   if (!m) return null;
   const n = Number(m[0].replace(/\./g, "").replace(",", "."));
   return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Percentuale italiana col segno: "-0,01%" → -0.01, "+1,23%" → 1.23.
+ * Il segno serve: è la variazione rispetto alla chiusura precedente, e invertirla
+ * è il modo per risalire a quella chiusura.
+ */
+export function percentualeItaliana(testo: string): number | null {
+  const m = testo.replace(/&nbsp;/g, " ").match(/([+-]?)\s*(\d{1,3}(?:\.\d{3})*(?:,\d+)?)\s*%/);
+  if (!m) return null;
+  const n = Number((m[2] as string).replace(/\./g, "").replace(",", "."));
+  if (!Number.isFinite(n)) return null;
+  return m[1] === "-" ? -n : n;
+}
+
+/** Data italiana → ISO. Accetta sia "27/08/26" sia "27/08/2026": la scheda usa entrambe. */
+export function dataIsoDaItaliana(testo: string): string | null {
+  const m = testo.replace(/&nbsp;/g, " ").match(/(\d{2})\/(\d{2})\/(\d{2}(?:\d{2})?)/);
+  if (!m) return null;
+  const [, gg, mm, aa] = m;
+  const anno = (aa as string).length === 2 ? `20${aa}` : (aa as string);
+  return `${anno}-${mm}-${gg}`;
 }
 
 /** "1,486.40" (formato inglese) → 1486.4 */
@@ -77,26 +108,128 @@ export function estraiCampoBorsaItaliana(html: string, etichetta: string): numbe
 }
 
 /**
- * Data della seduta a cui appartiene il prezzo. Borsa Italiana la espone in due
- * forme diverse a seconda del tipo di scheda:
- *  - ETF/ETC: dentro la cella del prezzo ("128,10 - 27/08/26 17.55.00")
- *  - obbligazioni e certificati: nell'intestazione ("Ultimo Contratto: 27/08/26")
- * Anno a due cifre in entrambi i casi.
+ * Intestazione della scheda: è lì che sta il prezzo di ADESSO.
+ *
+ *   <span class="... -formatPrice"><strong>87,38</strong></span>
+ *   <span class="... -percPrice"><strong>-0,01%</strong></span>
+ *   Fase: <strong>Continuous</strong>
+ *   Ultimo Contratto: <strong>28/08/26&nbsp;&nbsp;9.24.54</strong>
+ *
+ * Su uno strumento illiquido che oggi non ha scambiato, il prezzo è vuoto e
+ * l'ultimo contratto pure: è un'informazione, non un errore.
  */
-export function estraiDataSessione(html: string): string | null {
-  const daCella = campoEtichettato(html, "Prezzo di riferimento")
-    ?.replace(/&nbsp;/g, " ")
-    .match(/(\d{2})\/(\d{2})\/(\d{2})\b/);
-  // Nell'intestazione la frase è spezzata da tag: vanno rimossi prima di cercarla.
-  const daIntestazione = html
-    .replace(/&nbsp;|&#160;/g, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .match(/Ultimo Contratto:\s*(\d{2})\/(\d{2})\/(\d{2})\b/i);
-  const m = daCella ?? daIntestazione;
-  if (!m) return null;
-  const [, gg, mm, aa] = m;
-  return `20${aa}-${mm}-${gg}`;
+export interface IntestazioneBorsaItaliana {
+  /** Prezzo dell'ultimo contratto concluso. */
+  prezzo: number | null;
+  /** Variazione dichiarata dalla borsa, calcolata sulla chiusura precedente. */
+  variazionePct: number | null;
+  /** Seduta a cui appartiene l'ultimo contratto (ISO). */
+  seduta: string | null;
+}
+
+export function estraiIntestazioneBorsaItaliana(html: string): IntestazioneBorsaItaliana {
+  const prezzoGrezzo = html.match(/-formatPrice[^"]*"[^>]*>\s*<strong>([^<]*)<\/strong>/i)?.[1] ?? "";
+  const pctGrezzo = html.match(/-percPrice[^"]*"[^>]*>\s*<strong>([^<]*)<\/strong>/i)?.[1] ?? "";
+  // La frase "Ultimo Contratto:" è spezzata da tag nella pagina reale: vanno tolti.
+  const testo = html.replace(/&nbsp;|&#160;/g, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  const seduta = testo.match(/Ultimo Contratto:\s*(\d{2}\/\d{2}\/\d{2,4})/i)?.[1] ?? null;
+  return {
+    prezzo: numeroItaliano(prezzoGrezzo),
+    variazionePct: percentualeItaliana(pctGrezzo),
+    seduta: seduta ? dataIsoDaItaliana(seduta) : null,
+  };
+}
+
+/** Prezzo di riferimento = chiusura dell'ultima seduta conclusa, con la sua data. */
+export interface RiferimentoBorsaItaliana {
+  valore: number;
+  /** Seduta della chiusura, quando la scheda la dichiara. */
+  data: string | null;
+}
+
+export function estraiRiferimentoBorsaItaliana(html: string): RiferimentoBorsaItaliana | null {
+  // Due formati: la data dentro la cella stessa (ETF: "128,10 - 27/08/26 17.55.00")
+  // oppure in un campo separato (obbligazioni: "Data di riferimento").
+  const coppie: [string, string][] = [
+    ["Prezzo di riferimento", "Data di riferimento"],
+    ["Prezzo ufficiale", "Data Pr Ufficiale"],
+  ];
+  for (const [etichettaPrezzo, etichettaData] of coppie) {
+    const cella = campoEtichettato(html, etichettaPrezzo);
+    if (!cella) continue;
+    const valore = numeroItaliano(cella);
+    if (valore == null) continue;
+    const data = dataIsoDaItaliana(cella) ?? dataIsoDaItaliana(campoEtichettato(html, etichettaData) ?? "");
+    return { valore, data };
+  }
+  return null;
+}
+
+export interface PrezzoComposto {
+  prezzo: number | null;
+  chiusura_precedente: number | null;
+  /** Seduta a cui appartiene `prezzo`. */
+  data_sessione: string | null;
+  /** Seduta a cui appartiene `chiusura_precedente`, quando è nota. */
+  data_chiusura_precedente: string | null;
+}
+
+/**
+ * Mette insieme i due numeri che servono al P&L di giornata (§5.2):
+ * prezzo dell'ultimo contratto e chiusura della seduta precedente.
+ *
+ * Il riferimento pubblicato è la chiusura precedente FINCHÉ la seduta è in corso;
+ * a fine giornata la borsa lo ricalcola e diventa la chiusura di oggi. Per non
+ * confondere i due casi si usa la variazione % come arbitro: è per definizione
+ * calcolata sulla chiusura precedente, quindi invertirla ricostruisce quella
+ * chiusura. Se il riferimento coincide con quel valore è ancora la chiusura
+ * precedente e lo si preferisce (non ha l'arrotondamento della percentuale); se
+ * non coincide, è già passato a oggi e va scartato.
+ */
+export function componiPrezzoBorsaItaliana(html: string): PrezzoComposto {
+  const testa = estraiIntestazioneBorsaItaliana(html);
+  const rif = estraiRiferimentoBorsaItaliana(html);
+
+  // Oggi non ha scambiato: l'unico prezzo vero è il riferimento, e la chiusura
+  // precedente va cercata nello storico locale.
+  if (testa.prezzo == null) {
+    return {
+      prezzo: rif?.valore ?? null,
+      chiusura_precedente: null,
+      data_sessione: rif?.data ?? null,
+      data_chiusura_precedente: null,
+    };
+  }
+
+  const dallaVariazione =
+    testa.variazionePct != null && testa.variazionePct > -100
+      ? testa.prezzo / (1 + testa.variazionePct / 100)
+      : null;
+
+  let chiusura = dallaVariazione;
+  let dataChiusura: string | null = null;
+  if (rif) {
+    // Quando entrambe le date ci sono, decidono loro: un riferimento di una
+    // seduta ANTERIORE all'ultimo contratto è per definizione la chiusura
+    // precedente; se è della stessa seduta, la borsa l'ha già ricalcolato a fine
+    // giornata ed è la chiusura di oggi, quindi non serve. Solo se la scheda non
+    // datta il riferimento si ricorre al confronto con la variazione.
+    const eChiusuraPrecedente =
+      rif.data != null && testa.seduta != null
+        ? rif.data < testa.seduta
+        : dallaVariazione != null && Math.abs(rif.valore - dallaVariazione) / dallaVariazione < 0.001;
+    if (eChiusuraPrecedente) {
+      chiusura = rif.valore;
+      dataChiusura = rif.data;
+    }
+  }
+
+  return {
+    prezzo: testa.prezzo,
+    chiusura_precedente: chiusura,
+    data_sessione: testa.seduta ?? rif?.data ?? null,
+    data_chiusura_precedente: dataChiusura,
+  };
 }
 
 /** Prezzo corrente su stockanalysis.com: è il numero grande in testa alla scheda. */
@@ -157,16 +290,14 @@ async function daBorsaItaliana(s: Strumento): Promise<EsitoPrezzo> {
     // Se la scheda non contiene l'ISIN chiesto siamo su una pagina di ricaduta:
     // i numeri che contiene appartengono ad altri strumenti.
     if (!html.includes(s.isin)) throw new Error("la scheda non corrisponde all'ISIN");
-    const prezzo = estraiCampoBorsaItaliana(html, "Prezzo di riferimento") ?? estraiCampoBorsaItaliana(html, "Prezzo ufficiale");
-    if (prezzo == null) throw new Error("prezzo non presente nella scheda");
+    const c = componiPrezzoBorsaItaliana(html);
+    if (c.prezzo == null) throw new Error("prezzo non presente nella scheda");
     return {
       isin: s.isin,
-      prezzo,
-      // La scheda espone una sola chiusura, non quella precedente: il P&L
-      // giornaliero la recupera dallo storico locale (§5.2), che è attendibile
-      // proprio perché ogni prezzo è archiviato sotto la sua seduta.
-      chiusura_precedente: null,
-      data_sessione: estraiDataSessione(html),
+      prezzo: c.prezzo,
+      chiusura_precedente: c.chiusura_precedente,
+      data_sessione: c.data_sessione,
+      data_chiusura_precedente: c.data_chiusura_precedente,
       fonte: "Borsa Italiana",
     };
   } catch (e) {

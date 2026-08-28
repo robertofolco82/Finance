@@ -283,11 +283,19 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
                       </N>
                       <Chip v={vista.pnlGiorno.pct} s={12} />
                     </div>
-                    <div style={{ marginTop: 5, font: `400 10px ${UI}`, color: T.faint }}>
+                    <div style={{ marginTop: 5, font: `400 10px/1.5 ${UI}`, color: T.faint }}>
                       su {vista.pnlGiorno.copertura}/{vista.pnlGiorno.totali} titoli
                       {vista.dataRiferimentoPnl && baseRecente
                         ? `, rispetto al ${new Date(vista.dataRiferimentoPnl).toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" })}`
                         : ""}
+                      {/* Un titolo che oggi non ha scambiato non ha un prezzo nuovo, quindi non
+                          ha un movimento di giornata: entra nel totale ma non nel P&L di oggi. */}
+                      {vista.pnlGiorno.copertura < vista.pnlGiorno.totali && (
+                        <>
+                          <br />
+                          {vista.pnlGiorno.totali - vista.pnlGiorno.copertura} non hanno ancora scambiato oggi
+                        </>
+                      )}
                     </div>
                   </>
                 )}
