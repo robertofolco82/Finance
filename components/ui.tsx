@@ -6,7 +6,7 @@ import { MONO, OMBRA, R, T, UI, sg } from "@/lib/theme";
 
 export function Card({ children, style, pad = 20 }: { children: ReactNode; style?: CSSProperties; pad?: number }) {
   return (
-    <div style={{ background: T.surf, borderRadius: R, boxShadow: OMBRA, padding: pad, ...style }}>{children}</div>
+    <div style={{ background: T.surf, border: `1px solid ${T.line}`, borderRadius: R, boxShadow: OMBRA, padding: pad, ...style }}>{children}</div>
   );
 }
 
@@ -44,7 +44,7 @@ export function Chip({ v, s = 12, suffix = "%" }: { v: number | null | undefined
         color: sg(v),
         font: `600 ${s}px/1 ${MONO}`,
         padding: "5px 8px",
-        borderRadius: 7,
+        borderRadius: 0,
         whiteSpace: "nowrap",
         display: "inline-block",
       }}
@@ -67,7 +67,7 @@ export function Tag({ children, col }: { children: ReactNode; col: string }) {
         border: `1px solid ${col}33`,
         background: `${col}0F`,
         padding: "4px 6px",
-        borderRadius: 5,
+        borderRadius: 0,
         whiteSpace: "nowrap",
       }}
     >
@@ -96,7 +96,7 @@ export function Btn({
     letterSpacing: ".06em",
     textTransform: "uppercase",
     padding: size === "s" ? "7px 10px" : "10px 15px",
-    borderRadius: 9,
+    borderRadius: 0,
     cursor: disabled ? "not-allowed" : "pointer",
     transition: "opacity .15s",
     opacity: disabled ? 0.45 : 1,
@@ -104,7 +104,7 @@ export function Btn({
   };
   const v: CSSProperties =
     variant === "primary"
-      ? { background: T.ink, color: "#fff", border: `1px solid ${T.ink}` }
+      ? { background: T.accSolid, color: T.bg, border: `1px solid ${T.accSolid}` }
       : variant === "accent"
         ? { background: T.accBg, color: T.acc, border: `1px solid ${T.acc}33` }
         : { background: T.surf, color: T.mut, border: `1px solid ${T.line}` };
@@ -149,7 +149,7 @@ export function Spinner({ testo }: { testo: string }) {
             height: 16,
             borderRadius: "50%",
             border: `2px solid ${T.line}`,
-            borderTopColor: T.acc,
+            borderTopColor: T.accSolid,
             animation: "gira .8s linear infinite",
           }}
         />
@@ -161,7 +161,7 @@ export function Spinner({ testo }: { testo: string }) {
 
 export function ErroreCard({ messaggio }: { messaggio: string }) {
   return (
-    <Card style={{ borderLeft: `3px solid ${T.neg}`, background: T.negBg }}>
+    <Card style={{ background: T.negBg }}>
       <div style={{ font: `400 13px/1.6 ${UI}`, color: T.ink }}>{messaggio}</div>
     </Card>
   );

@@ -346,15 +346,15 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
                 <CartesianGrid stroke={T.line} strokeDasharray="3 5" vertical={false} />
                 <XAxis dataKey="t" tick={{ fill: T.faint, fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis domain={["auto", "auto"]} width={46} tickFormatter={(v) => `${Math.round(v / 1000)}k`} tick={{ fill: T.faint, fontSize: 11 }} tickLine={false} axisLine={false} />
-                <Tooltip formatter={(v: number) => `${nf(v)} €`} contentStyle={{ border: "none", borderRadius: 10, boxShadow: OMBRA, fontFamily: MONO, fontSize: 12 }} />
-                <Line type="monotone" dataKey="v" stroke={T.acc} strokeWidth={2.4} dot={{ r: 3, fill: "#fff", stroke: T.acc, strokeWidth: 2 }} />
+                <Tooltip formatter={(v: number) => `${nf(v)} €`} contentStyle={{ border: `1px solid ${T.line}`, borderRadius: 0, boxShadow: OMBRA, fontFamily: MONO, fontSize: 12, background: T.surf }} />
+                <Line type="monotone" dataKey="v" stroke={T.accSolid} strokeWidth={2.4} dot={{ r: 3, fill: T.bg, stroke: T.accSolid, strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         )}
 
         <div style={{ marginTop: 22 }}>
-          <div style={{ display: "flex", height: 10, borderRadius: 6, overflow: "hidden" }}>
+          <div style={{ display: "flex", height: 10, borderRadius: 0, overflow: "hidden" }}>
             {vista.gruppiMacro.map((g) => (
               <div key={g.macro} title={`${g.macro} ${g.quota_pct.toFixed(1)}%`} style={{ width: `${g.quota_pct}%`, background: MACRO_COL[g.macro] || T.mut }} />
             ))}
@@ -362,7 +362,7 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
           <div style={{ display: "flex", gap: 18, marginTop: 12, flexWrap: "wrap" }}>
             {vista.gruppiMacro.map((g) => (
               <div key={g.macro} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <span style={{ width: 8, height: 8, borderRadius: 3, background: MACRO_COL[g.macro] || T.mut }} />
+                <span style={{ width: 8, height: 8, borderRadius: 0, background: MACRO_COL[g.macro] || T.mut }} />
                 <span style={{ font: `500 12px ${UI}`, color: T.mut }}>{g.macro}</span>
                 <N s={12} w={700}>{g.quota_pct.toFixed(1)}%</N>
               </div>
@@ -373,10 +373,10 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
 
       <Attribuzione righe={vista.attribuzione} totale={vista.totale_eur} />
 
-      {errore && <Card style={{ borderLeft: `3px solid ${T.neg}`, background: T.negBg }}><div style={{ font: `400 13px/1.6 ${UI}`, color: T.ink }}>{errore}</div></Card>}
+      {errore && <Card style={{ background: T.negBg }}><div style={{ font: `400 13px/1.6 ${UI}`, color: T.ink }}>{errore}</div></Card>}
 
       {risultatoImport && (
-        <Card style={{ borderLeft: `3px solid ${T.acc}` }}>
+        <Card style={{ background: T.accBg }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
             <Label col={T.acc}>Import xls completato</Label>
             <button
@@ -407,7 +407,7 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
       )}
 
       {vista.sospetti.length > 0 && (
-        <Card style={{ borderLeft: `3px solid ${T.warn}` }}>
+        <Card style={{ background: T.warnBg }}>
           <Label col={T.warn}>Prezzi bloccati — variazione anomala</Label>
           <div style={{ marginTop: 8, font: `400 13px/1.6 ${UI}`, color: T.ink, maxWidth: 640 }}>
             Questi valori si scostano oltre il 60% dal precedente. Quasi sempre significa che la ricerca ha preso uno
@@ -415,7 +415,7 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
           </div>
           <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
             {vista.sospetti.map((s) => (
-              <div key={s.isin} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 12px", background: T.warnBg, borderRadius: 9 }}>
+              <div key={s.isin} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 12px", background: T.warnBg, borderRadius: 0 }}>
                 <div>
                   <div style={{ font: `600 13px ${UI}` }}>{s.nome}</div>
                   <div style={{ marginTop: 3 }}>
@@ -442,12 +442,12 @@ export function PortafoglioTab({ vista, onApri, ricarica }: Props) {
             style={{
               font: `600 12px ${UI}`,
               padding: "9px 14px",
-              borderRadius: 9,
+              borderRadius: 0,
               whiteSpace: "nowrap",
               cursor: "pointer",
-              border: `1px solid ${filtro === f ? T.ink : T.line}`,
-              background: filtro === f ? T.ink : T.surf,
-              color: filtro === f ? "#fff" : T.mut,
+              border: `1px solid ${filtro === f ? T.accSolid : T.line}`,
+              background: filtro === f ? T.accSolid : T.surf,
+              color: filtro === f ? T.bg : T.mut,
             }}
           >
             {f}
@@ -537,7 +537,7 @@ function RigaCard({
                     if (e.key === "Enter") onSalvaManuale(s.isin);
                   }}
                   onBlur={() => manualeValore.trim() && onSalvaManuale(s.isin)}
-                  style={{ padding: "7px 10px", borderRadius: 8, border: `1px solid ${T.line}`, font: `500 11px ${UI}`, width: 150, background: T.surf }}
+                  style={{ padding: "7px 10px", borderRadius: 0, border: `1px solid ${T.line}`, font: `500 11px ${UI}`, width: 150, background: T.surf }}
                 />
               </div>
             )}
@@ -562,7 +562,7 @@ function RigaCard({
             marginTop: 12,
             padding: "10px 12px",
             background: T.warnBg,
-            borderRadius: 9,
+            borderRadius: 0,
             display: "flex",
             gap: 8,
             alignItems: "center",
@@ -583,7 +583,7 @@ function RigaCard({
             style={{
               width: 110,
               padding: "8px 10px",
-              borderRadius: 8,
+              borderRadius: 0,
               border: `1px solid ${T.line}`,
               font: `600 12px ${MONO}`,
               background: T.surf,

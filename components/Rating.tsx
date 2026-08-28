@@ -37,7 +37,7 @@ export function ConsensoAnalisti({ rating, analisti }: { rating?: string | null;
           background: `${col}14`,
           border: `1px solid ${col}33`,
           padding: "10px 14px",
-          borderRadius: 10,
+          borderRadius: 0,
         }}
       >
         {etichetta}
@@ -96,20 +96,20 @@ export function BarreTarget({
       {righe.map((r) => (
         <div key={r.etichetta}>
           <div style={{ font: `500 11px ${UI}`, color: T.mut, marginBottom: 4 }}>{r.etichetta}</div>
-          <div style={{ height: 30, background: T.surf2, borderRadius: 8, overflow: "hidden" }}>
+          <div style={{ height: 30, background: T.surf2, borderRadius: 0, overflow: "hidden" }}>
             <div
               style={{
                 width: `${Math.max(22, ((r.prezzo as number) / max) * 100)}%`,
                 height: "100%",
-                background: r.evidenzia ? T.acc : `${T.acc}99`,
-                borderRadius: 8,
+                background: r.evidenzia ? T.accSolid : `${T.accSolid}99`,
+                borderRadius: 0,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "flex-end",
                 padding: "0 10px",
               }}
             >
-              <span style={{ font: `600 12px ${MONO}`, color: "#fff", whiteSpace: "nowrap" }}>
+              <span style={{ font: `600 12px ${MONO}`, color: T.bg, whiteSpace: "nowrap" }}>
                 {vs}
                 {Number(r.prezzo).toLocaleString("it-IT", { maximumFractionDigits: 2 })}
                 {r.upside != null ? ` (${r.upside >= 0 ? "+" : ""}${r.upside.toFixed(1)}%)` : ""}

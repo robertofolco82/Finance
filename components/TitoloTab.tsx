@@ -77,7 +77,7 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
             width: "100%",
             marginTop: 10,
             padding: "13px 14px",
-            borderRadius: 10,
+            borderRadius: 0,
             border: `1px solid ${T.line}`,
             font: `600 14px ${UI}`,
             background: T.surf,
@@ -107,7 +107,7 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
               </div>
             )}
             {s.nota && (
-              <div style={{ marginTop: 10, padding: "10px 12px", background: T.surf2, borderRadius: 9, font: `400 12px/1.6 ${UI}`, color: T.mut, maxWidth: 520 }}>
+              <div style={{ marginTop: 10, padding: "10px 12px", background: T.surf2, borderRadius: 0, font: `400 12px/1.6 ${UI}`, color: T.mut, maxWidth: 520 }}>
                 {s.nota}
               </div>
             )}
@@ -117,7 +117,7 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
           </Btn>
         </div>
         {!puoFond && naMotivo && (
-          <div style={{ marginTop: 14, padding: "10px 12px", background: T.surf2, borderRadius: 9, font: `400 12px ${UI}`, color: T.mut }}>
+          <div style={{ marginTop: 14, padding: "10px 12px", background: T.surf2, borderRadius: 0, font: `400 12px ${UI}`, color: T.mut }}>
             Rating non disponibile per questo strumento: {naMotivo}
           </div>
         )}
@@ -134,8 +134,8 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
                 <CartesianGrid stroke={T.line} strokeDasharray="3 5" vertical={false} />
                 <XAxis dataKey="t" tick={{ fill: T.faint, fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis domain={["auto", "auto"]} width={56} tick={{ fill: T.faint, fontSize: 11 }} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ border: "none", borderRadius: 10, boxShadow: OMBRA, fontFamily: MONO, fontSize: 12 }} />
-                <Line type="monotone" dataKey="v" stroke={T.acc} strokeWidth={2.4} dot={{ r: 3, fill: "#fff", stroke: T.acc, strokeWidth: 2 }} />
+                <Tooltip contentStyle={{ border: `1px solid ${T.line}`, borderRadius: 0, boxShadow: OMBRA, fontFamily: MONO, fontSize: 12, background: T.surf }} />
+                <Line type="monotone" dataKey="v" stroke={T.accSolid} strokeWidth={2.4} dot={{ r: 3, fill: T.bg, stroke: T.accSolid, strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -176,7 +176,7 @@ export function TitoloTab({ isin, elenco, onSeleziona }: Props) {
               <Label>Storico rilevazioni</Label>
               <div style={{ marginTop: 10, display: "grid", gap: 7 }}>
                 {[...dati.ratingLog].reverse().map((l, i) => (
-                  <div key={i} style={{ display: "flex", gap: 14, alignItems: "center", padding: "8px 10px", background: T.surf2, borderRadius: 8 }}>
+                  <div key={i} style={{ display: "flex", gap: 14, alignItems: "center", padding: "8px 10px", background: T.surf2, borderRadius: 0 }}>
                     <N s={11} c={T.mut}>{new Date(l.ts).toLocaleDateString("it-IT")}</N>
                     <span style={{ font: `600 12px ${UI}`, color: T.ink }}>{l.rating}</span>
                     {l.pt_medio != null && <N s={11} c={T.mut}>PT {Number(l.pt_medio).toFixed(2)}</N>}

@@ -79,7 +79,7 @@ export function Attribuzione({ righe, totale }: { righe: RigaAttribuzione[]; tot
             />
             <ReferenceLine y={0} stroke={T.line} strokeWidth={1} />
             <Tooltip cursor={{ fill: T.surf2, opacity: 0.6 }} content={<Etichetta />} />
-            <Bar dataKey="dEur" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+            <Bar dataKey="dEur" radius={[0, 0, 0, 0]} isAnimationActive={false}>
               {dati.map((d) => (
                 <Cell key={d.isin} fill={d.dEur >= 0 ? T.pos : T.neg} />
               ))}
@@ -116,7 +116,7 @@ function Etichetta({ active, payload }: { active?: boolean; payload?: { payload:
       style={{
         background: T.surf,
         border: `1px solid ${T.line}`,
-        borderRadius: 10,
+        borderRadius: 0,
         boxShadow: OMBRA,
         padding: "9px 11px",
         maxWidth: 230,
