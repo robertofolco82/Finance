@@ -592,5 +592,294 @@
     "valuta": "RATE",
     "fonte": "BCE via Frankfurter",
     "raccolto_il": "2026-08-27T23:18:42.752Z"
+  },
+  {
+    "isin": "US20451W1018",
+    "data": "2026-08-28",
+    "chiusura": 14.64,
+    "chiusura_precedente": 14.61,
+    "data_chiusura_precedente": null,
+    "valuta": "USD",
+    "fonte": "stockanalysis.com (stocks/cmps)",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "US8740391003",
+    "data": "2026-08-28",
+    "chiusura": 427.3,
+    "chiusura_precedente": 417.69,
+    "data_chiusura_precedente": null,
+    "valuta": "USD",
+    "fonte": "stockanalysis.com (stocks/tsm)",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "NL0010273215",
+    "data": "2026-08-28",
+    "chiusura": 1484.6,
+    "chiusura_precedente": 1486.4,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "stockanalysis.com (quote/ams/ASML)",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "IE00BFMXXD54",
+    "data": "2026-08-28",
+    "chiusura": 128.3,
+    "chiusura_precedente": 128.1,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "IE00B3XXRP09",
+    "data": "2026-08-28",
+    "chiusura": 125.9,
+    "chiusura_precedente": 125.68,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "IE00BLDGHT92",
+    "data": "2026-08-28",
+    "chiusura": 162.22,
+    "chiusura_precedente": 162.32,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "stockanalysis.com (quote/etr/UIQ4)",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "DE000VY3NBZ6",
+    "data": "2026-08-28",
+    "chiusura": 2.905,
+    "chiusura_precedente": null,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "NLBNPIT3MRU4",
+    "data": "2026-08-28",
+    "chiusura": 2.905,
+    "chiusura_precedente": null,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "NLBNPIT37C90",
+    "data": "2026-08-28",
+    "chiusura": 8.03,
+    "chiusura_precedente": null,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "NLBNPIT3MA79",
+    "data": "2026-08-28",
+    "chiusura": 45.2,
+    "chiusura_precedente": null,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "XS3388190996",
+    "data": "2026-08-28",
+    "chiusura": 0.8565,
+    "chiusura_precedente": 0.9519,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "CH1358858129",
+    "data": "2026-08-28",
+    "chiusura": 1003.87,
+    "chiusura_precedente": null,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "CH1336232371",
+    "data": "2026-08-28",
+    "chiusura": 1005,
+    "chiusura_precedente": 937.07,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "IT0006775073",
+    "data": "2026-08-28",
+    "chiusura": 1007.7,
+    "chiusura_precedente": null,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "DE000UR0A4S0",
+    "data": "2026-08-28",
+    "chiusura": 99.07,
+    "chiusura_precedente": 98.37,
+    "data_chiusura_precedente": null,
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "IE00B579F325",
+    "data": "2026-08-28",
+    "chiusura": 379.41,
+    "chiusura_precedente": 379.43,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "LU0290358497",
+    "data": "2026-08-28",
+    "chiusura": 150.0399,
+    "chiusura_precedente": 150.0225,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "IE00B3VWN179",
+    "data": "2026-08-28",
+    "chiusura": 108.4,
+    "chiusura_precedente": 108.41,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "LU1287023185",
+    "data": "2026-08-28",
+    "chiusura": 167.53,
+    "chiusura_precedente": 167.96,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "IE000UWJUW87",
+    "data": "2026-08-28",
+    "chiusura": 9.163,
+    "chiusura_precedente": 9.193,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "IT0005436693",
+    "data": "2026-08-28",
+    "chiusura": 87.27,
+    "chiusura_precedente": 87.39,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "BE0000351602",
+    "data": "2026-08-28",
+    "chiusura": 96.89,
+    "chiusura_precedente": 96.9,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "AT0000A2VB47",
+    "data": "2026-08-28",
+    "chiusura": 94.03,
+    "chiusura_precedente": 94.07,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "EU000A283859",
+    "data": "2026-08-28",
+    "chiusura": 88.41,
+    "chiusura_precedente": 88.57,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "DE0001102523",
+    "data": "2026-08-28",
+    "chiusura": 96.79,
+    "chiusura_precedente": 96.8,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "FR0014007L00",
+    "data": "2026-08-28",
+    "chiusura": 81.98,
+    "chiusura_precedente": 82,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "XS1503043694",
+    "data": "2026-08-28",
+    "chiusura": 92.14,
+    "chiusura_precedente": 92.12,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "XS2388495942",
+    "data": "2026-08-28",
+    "chiusura": 99.261,
+    "chiusura_precedente": 99.408,
+    "data_chiusura_precedente": "2026-08-27",
+    "valuta": "EUR",
+    "fonte": "Borsa Italiana",
+    "raccolto_il": "2026-08-28T12:06:34.592Z"
+  },
+  {
+    "isin": "EURUSD",
+    "data": "2026-08-28",
+    "chiusura": 1.1645,
+    "chiusura_precedente": null,
+    "valuta": "RATE",
+    "fonte": "BCE via Frankfurter",
+    "raccolto_il": "2026-08-28T12:06:34.654Z"
   }
 ]
